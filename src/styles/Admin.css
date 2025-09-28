@@ -1,0 +1,147 @@
+/* ====== LAYOUT GENERAL ====== */
+.admin-portal {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f9fc;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: #212529; /* gris oscuro tipo bootstrap */
+  color: #fff;
+  padding: 20px 15px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar h5 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 8px;
+}
+
+.sidebar button,
+.sidebar input {
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.sidebar input {
+  background: #343a40;
+  border: none;
+  color: #fff;
+}
+
+.sidebar input::placeholder {
+  color: #adb5bd;
+}
+
+/* ====== CONTENIDO PRINCIPAL ====== */
+.content {
+  flex: 1;
+  margin-left: 260px; /* deja espacio para la sidebar fija */
+  padding: 30px;
+}
+
+.content h4 {
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #212529;
+}
+
+/* ====== DRIVERS LIST ====== */
+.list-group-item {
+  border: none;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.list-group-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item.active {
+  background: #ffc300;
+  border-color: #ffc300;
+}
+
+/* Avatar redondo */
+.list-group-item img {
+  border: 2px solid #dee2e6;
+}
+
+/* ====== DETALLE DEL DRIVER ====== */
+.card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  background: #ffc300;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 12px 12px 0 0;
+}
+
+/* ====== BOTONES ====== */
+.bg-primary {
+  background-color: #ffc300;
+  border: none;
+}
+.btn-primary {
+  background-color: #ffc300;
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #ffc300;
+}
+
+.btn-outline-secondary {
+  border-radius: 30px;
+  padding: 6px 18px;
+}
+
+/* ====== MODALES ====== */
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  background: #ffc300;
+  color: #fff;
+  border-bottom: none;
+}
+
+.modal-footer {
+  border-top: none;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+/* ====== INPUTS Y FORMS ====== */
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  box-shadow: none !important;
+}
+
+.form-control:focus {
+  border-color: #ffc300;
+  box-shadow: 0 0 0 0.2rem rgba(255, 103, 17, 0.25) !important;
+}

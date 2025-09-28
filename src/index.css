@@ -1,0 +1,117 @@
+/* index.css */
+body {
+  background-color: #ffffff;
+}
+
+/* Cards de conductores */
+.driver-card {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  margin: 5px;
+  width: 120px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.driver-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.driver-card.active {
+  border: 2px solid #ffc107;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+}
+
+
+/* Contenedor horizontal con scroll */
+.scroll-container {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  scrollbar-width: thin;
+}
+.scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #ffc107;
+  border-radius: 3px;
+}
+
+/* Estrellas */
+.stars i {
+  font-size: 1.5rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.stars i.active {
+  color: #ffc107;
+}
+
+/* Caja del formulario */
+#driverInfo {
+  border: 1px solid #ffc107 !important;
+  background: #fffdf5;
+}
+/* Avatar circular (usa rounded-circle bg-warning en tu JSX) */
+.rounded-circle.bg-warning {
+  width: 60px !important;
+  height: 60px !important;
+  font-weight: bold;
+  color: white;
+  font-size: 18px;
+}
+
+/* Card de conductores */
+.card.text-center.p-3 {
+  min-width: 160px;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
+}
+.card.text-center.p-3:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Estrellas que usas con bi-star */
+button .bi {
+  font-size: 1.5rem;
+}
+button .bi-star-fill {
+  color: #ffc107;
+}
+button .bi-star {
+  color: #ddd;
+}
+.driver-card {
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 15px;
+  min-width: 160px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+}
+.driver-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Avatar circular */
+.driver-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ffc107;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  margin: 0 auto;
+}

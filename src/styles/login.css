@@ -1,0 +1,47 @@
+/* Centrado vertical de la vista */
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ff6711 0%, #ff8c42 100%);
+  padding: 20px;
+}
+
+/* Card estilizada */
+.login-card {
+  max-width: 400px;
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* Header con gradiente */
+.login-card .card-header {
+  background: linear-gradient(135deg, #ff6711 0%, #e65c0f 100%);
+  border: none;
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+
+/* Botón principal */
+.login-card .btn-primary {
+  background-color: #ff6711;
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s ease-in-out;
+}
+
+.login-card .btn-primary:hover {
+  background-color: #e65c0f;
+}
+
+/* Inputs */
+.login-card .form-control {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-card .form-control:focus {
+  border-color: #ff6711;
+  box-shadow: 0 0 0 0.2rem rgba(255, 103, 17, 0.25);
+}
