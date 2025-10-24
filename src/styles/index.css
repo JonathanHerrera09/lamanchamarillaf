@@ -1,0 +1,278 @@
+
+/* Top bar ======== HEADER =============  */
+/* Top bar */
+.top-bar {
+  background: #000; /* amarillo */
+  color: #FFD700; /* texto negro */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 20px;
+  font-size: 14px;
+}
+
+.top-bar .apps a {
+  color: #ffffff; /* texto negro */
+  text-decoration: none;
+  margin-right: 12px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.top-bar .apps a:hover {
+  color: #FFD700; /* hover blanco */
+}
+
+/* Redes sociales */
+/* Redes sociales con colores oficiales */
+.social-icons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.social-icons a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Colores oficiales */
+.social-icons a[href*="facebook"] {
+  background-color: #1877F2; /* Azul Facebook */
+}
+
+.social-icons a[href*="x.com"],
+.social-icons a[href*="twitter"] {
+  background-color: #000000; /* Negro X (Twitter) */
+}
+
+.social-icons a[href*="instagram"] {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+}
+
+.social-icons a[href*="youtube"] {
+  background-color: #FF0000; /* Rojo YouTube */
+}
+
+.social-icons a[href*="tiktok"] {
+  background-color: #000000; /* Negro TikTok */
+}
+
+/* Hover */
+.social-icons a:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+
+/* Navbar */
+.navbar {
+  background: #FFD700; /* negro */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* padding: 12px 40px; más espacio a los lados */
+}
+
+.navbar .logo img {
+  height: 45px; /* ajusta según tu logo */
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 35px; 
+  margin-right: 40px;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+
+.nav-links li a {
+  color: black;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+  font-family: inherit; /* respeta tipografía original */
+}
+
+.nav-links li a:hover {
+  color: #ffffff; /* hover amarillo */
+}
+
+/* Toggle (móvil) */
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+}
+
+/* ======== RESPONSIVE MENÚ MÓVIL ======== */
+@media (max-width: 768px) {
+  /* Menú ocupa toda la pantalla */
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: -100%; /* oculto fuera de pantalla */
+    width: 100%;
+    height: 100vh;
+    background-color: #FFD700;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    transition: left 0.4s ease;
+    z-index: 9999;
+  }
+
+  /* Estado activo → ocupa toda la pantalla */
+  .nav-links.active {
+    left: 0;
+  }
+
+  /* Links */
+  .nav-links a {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .nav-links a:hover {
+    color: #FFD700;
+  }
+
+  /* Botón hamburguesa */
+  .menu-toggle {
+    display: block;
+    cursor: pointer;
+    font-size: 28px;
+    color: #fff;
+    z-index: 10000;
+  }
+}
+
+/* ================= FOOTER ================= */
+.footer {
+  background-color: #000;
+  color: #fff;
+  padding: 60px 0 20px;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 -8px 20px rgba(255, 211, 0, 0.6); /* Sombra amarilla superior */
+}
+
+.footer-logo-img {
+  max-width: 160px; /* Ajusta según tu diseño */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.footer-about p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #ccc;
+}
+
+.footer-contact h5,
+.footer-social h5 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #FFD300;
+}
+
+.footer-contact ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-contact ul li {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+/* Redes sociales en grid */
+.footer-social .social-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  gap: 12px;
+}
+
+.footer-social .social-grid a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Colores oficiales */
+.footer-social .social-grid a.facebook {
+  background-color: #1877F2;
+}
+
+.footer-social .social-grid a.x {
+  background-color: #000000;
+  border: 2px solid #fff; /* borde blanco para destacar */
+}
+
+.footer-social .social-grid a.instagram {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+}
+
+.footer-social .social-grid a.youtube {
+  background-color: #FF0000;
+}
+
+.footer-social .social-grid a.tiktok {
+  background-color: #000000;
+  border: 2px solid #fff; /* borde blanco para distinguirlo */
+}
+
+/* Hover */
+.footer-social .social-grid a:hover {
+  transform: scale(1.1);
+  opacity: 0.85;
+}
+
+
+.footer-bottom {
+  border-top: 1px solid #222;
+  margin-top: 30px;
+  padding-top: 15px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+/* Estilos generales del menú */
+.navbar .menu-link {
+  color: #000; /* Negro */
+  text-decoration: none; /* Quita la línea inferior */
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar .menu-link:hover {
+  color: #ff6711; /* Color al pasar el mouse (puedes cambiarlo) */
+  text-decoration: none;
+}
+
+/* Si alguno tenía borde inferior o subrayado extra */
+.navbar .menu-link:focus,
+.navbar .menu-link:active {
+  outline: none;
+  border: none;
+  text-decoration: none;
+}

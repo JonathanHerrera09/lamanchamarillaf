@@ -27,7 +27,38 @@ function Stars({ value, size = 16 }) {
     </div>
   );
 }
-
+function RatingInput({ value, onChange }) {
+  return (
+    <div
+      className="d-flex align-items-center gap-1"
+      role="radiogroup"
+      aria-label="Selecciona calificación"
+    >
+      {Array.from({ length: 5 }).map((_, i) => {
+        const n = i + 1;
+        const active = value >= n;
+        return (
+          <button
+            key={n}
+            type="button"
+            role="radio"
+            aria-checked={value === n}
+            onClick={() => onChange(n)}
+            className="btn p-0 border-0 bg-transparent"
+            style={{ cursor: "pointer" }}
+          >
+            <i
+              className={`bi ${
+                active ? "bi-star-fill text-warning" : "bi-star text-secondary"
+              }`}
+              style={{ fontSize: "1.5rem" }}
+            ></i>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 export default function Admin() {
   const [session, setSession] = useState(null);
   const demoEmail = "admin@taxiseguro.com";
@@ -48,7 +79,7 @@ export default function Admin() {
   const [qPromoted, setQPromoted] = useState("");
   const [qLost, setQLost] = useState("");
   const [qDrivers, setQDrivers] = useState("");
-
+  const [driversAl, setDriversAl] = useState([]);
   // Selecciones / modales
   const [selectedRating, setSelectedRating] = useState(null);
   const [selectedRequested, setSelectedRequested] = useState(null);
@@ -86,7 +117,15 @@ export default function Admin() {
       localStorage.removeItem(ADMIN_KEY);
     }
   }, [session]);
-
+  const fetchDrivers = async () => {
+    try {
+      const res = await axios.get("http://localhost:3050/api/v1/driver/random/ten");
+      setDriversAl(res.data?.data || []);
+    } catch (err) {
+      console.error("Error al obtener conductores:", err);
+      setDriversAl([]);
+    }
+  };
   // --- FETCH FUNCTIONS ---
   const fetchRatings = async () => {
     try {
@@ -139,15 +178,9 @@ export default function Admin() {
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${API_BASE}/driver`);
-      // const res = await axios.get(`${API_BASE}/user`);
       const all = res.data?.data || [];
-      // filtrar role === "2" (asegúrate que en tu API el role está en string; comparamos como string)
-      // const onlyDrivers = all.filter((u) => String(u.role) === "2");
-      // console.log("Fetched users:", all);
-      // debugger;
       setDrivers(all);
     } catch (err) {
-      console.error("Error fetching users:", err);
       setDrivers([]);
       Swal.fire({ icon: "error", title: "Error", text: "No se pudieron cargar los usuarios" });
     }
@@ -165,7 +198,10 @@ export default function Admin() {
 
   // cargar todo inicialmente (y también después de login)
   useEffect(() => {
-    fetchAll();
+    // if (session) {
+      fetchAll();
+      fetchDrivers();
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -329,7 +365,50 @@ export default function Admin() {
               <button className="btn btn-outline-secondary" onClick={onLogout}>Cerrar sesión</button>
             </div>
           </div>
+          {/* === TAXISTAS DESTACADOS (más pequeño) === */}
+          <div className="card-body d-flex overflow-auto gap-2 py-2">
+            {drivers.map((d) => (
+              <div
+                key={d.id}
+                onClick={() => { setView("drivers"); setSelectedDriverId(d.id); }}
+                className="card text-center p-2 shadow-sm border-0"
+                style={{ minWidth: "150px", maxWidth: "150px" }}
+              >
+                <div
+                  className="rounded-circle mx-auto overflow-hidden"
+                  style={{ width: "50px", height: "50px" }}
+                >
+                  {d.photo ? (
+                    <img
+                      src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo.replace('http://localhost:3050', '')}`}
+                      alt={d.name}
+                      className="w-100 h-100 object-fit-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const fallback = document.createElement('div');
+                        fallback.className = 'w-100 h-100 bg-warning d-flex align-items-center justify-content-center fw-bold';
+                        fallback.textContent = d.name.split(" ").map((s) => s[0]).join("");
+                        e.target.parentNode.appendChild(fallback);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-100 h-100 bg-warning d-flex align-items-center justify-content-center fw-bold">
+                      {d.name.split(" ").map((s) => s[0]).join("")}
+                    </div>
+                  )}
+                </div>
 
+                {/* Info */}
+                <div className="mt-1 fw-semibold" style={{ fontSize: "0.8rem" }}>{d.name}</div>
+                <div className="text-muted small" style={{ fontSize: "0.7rem" }}>Placa {d.taxiPlate}</div>
+
+                {/* Rating */}
+                <div className="mt-1" style={{ transform: "scale(0.8)" }}>
+                  <RatingInput value={Math.round(d.averageRate)} onChange={() => {}} />
+                </div>
+              </div>
+            ))}
+          </div>
           <div className="row">
             <aside className="col-lg-3 mb-3">
               <div className="card sticky-top" style={{ top: "1rem" }}>
@@ -338,9 +417,9 @@ export default function Admin() {
                   {[
                     { key: "search", label: "Buscador" },
                     { key: "ratings", label: "Calificaciones de taxistas" },
-                    { key: "requested", label: "Empleos pedidos" },
-                    { key: "promoted", label: "Empleos promocionados" },
-                    { key: "lost", label: "Objetos perdidos" },
+                    { key: "requested", label: "Busco trabajo" },
+                    { key: "promoted", label: "Busco conductor" },
+                    { key: "lost", label: "Objetos encontrados" },
                     { key: "drivers", label: "Taxistas vinculados" },
                   ].map((item) => (
                     <button
@@ -588,6 +667,10 @@ export default function Admin() {
                               <label className="form-label">Placa</label>
                               <input id="taxiPlate" name="taxiPlate" className="form-control text-uppercase" placeholder="ABC123" />
                             </div>
+                            <div className="col-md-6 mb-2">
+                              <label className="form-label">Empresa</label>
+                              <input id="companytaxi" name="companytaxi" className="form-control text-uppercase" placeholder="Taxis Cali" />
+                            </div>
                           </div>
 
                           <div className="row">
@@ -608,24 +691,58 @@ export default function Admin() {
                     <div className="card shadow">
                       <div className="card-header d-flex justify-content-between align-items-center">
                         <span>Taxistas vinculados</span>
-                        <button className="btn btn-sm btn-outline-secondary" onClick={fetchUsers}>Recargar</button>
+                        <button className="btn btn-sm btn-outline-secondary" onClick={fetchUsers}>
+                          Recargar
+                        </button>
                       </div>
+
                       <div className="card-body">
-                        <input type="text" className="form-control mb-3" placeholder="Buscar por nombre, usuario o email" value={qDrivers} onChange={(e) => setQDrivers(e.target.value)} />
+                        <input
+                          type="text"
+                          className="form-control mb-3"
+                          placeholder="Buscar por nombre, usuario o email"
+                          value={qDrivers}
+                          onChange={(e) => setQDrivers(e.target.value)}
+                        />
+
                         <div className="list-group">
                           {drivers
-                            .filter((d) => ((d.name || "") + (d.username || "") + (d.email || "") + (d.plate || "")).toLowerCase().includes(qDrivers.toLowerCase()))
+                            .filter((d) =>
+                              ((d.name || "") + (d.username || "") + (d.email || "") + (d.plate || ""))
+                                .toLowerCase()
+                                .includes(qDrivers.toLowerCase())
+                            )
                             .map((d) => (
-                              <button key={d.id} className={`list-group-item list-group-item-action d-flex align-items-center ${String(selectedDriverId) === String(d.id) ? "active" : ""}`} onClick={() => setSelectedDriverId(d.id)}>
-                                <img 
-                                  src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo ? d.photo.replace('http://localhost:3050', '') : ''}`} 
-                                  alt={d.name} 
-                                  className="rounded-circle me-3" 
-                                  style={{ width: 64, height: 64, objectFit: "cover" }} 
+                              <button
+                                key={d.id}
+                                className={`list-group-item list-group-item-action d-flex align-items-center ${
+                                  String(selectedDriverId) === String(d.id) ? "active" : ""
+                                }`}
+                                onClick={() =>
+                                  // Si se vuelve a hacer clic sobre el mismo taxista, se deselecciona
+                                  setSelectedDriverId((prev) =>
+                                    String(prev) === String(d.id) ? null : d.id
+                                  )
+                                }
+                              >
+                                <img
+                                  src={`${process.env.REACT_APP_API_URL_SOCKET}${
+                                    d.photo ? d.photo.replace("http://localhost:3050", "") : ""
+                                  }`}
+                                  alt={d.name}
+                                  className="rounded-circle me-3"
+                                  style={{ width: 64, height: 64, objectFit: "cover" }}
                                 />
                                 <div className="flex-grow-1 text-start">
-                                  <div><strong>{d.name} {d.username ? `— ${d.username}` : ""}</strong></div>
-                                  <div className="small text-muted">{d.email}{d.plate ? ` — ${d.plate}` : ""}</div>
+                                  <div>
+                                    <strong>
+                                      {d.name} {d.username ? `— ${d.username}` : ""}
+                                    </strong>
+                                  </div>
+                                  <div className="small text-muted">
+                                    {d.email}
+                                    {d.plate ? ` — ${d.plate}` : ""}
+                                  </div>
                                 </div>
                               </button>
                             ))}
@@ -634,90 +751,163 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* === DETALLE DEL TAXISTA SELECCIONADO === */}
                   {selectedDriver && (
                     <div className="col-12">
                       <div className="card shadow">
                         <div className="card-header">Detalle del taxista</div>
                         <div className="card-body">
+                          {/* === Info general === */}
                           <div className="d-flex align-items-center mb-3">
-                            <img 
-  src={`${process.env.REACT_APP_API_URL_SOCKET}${selectedDriver.photo ? selectedDriver.photo.replace('http://localhost:3050', '') : ''}`} 
-  alt={selectedDriver.name} 
-  className="rounded-circle me-3" 
-  style={{ width: 64, height: 64, objectFit: "cover" }} 
-/>
+                            <img
+                              src={`${process.env.REACT_APP_API_URL_SOCKET}${
+                                selectedDriver.photo
+                                  ? selectedDriver.photo.replace("http://localhost:3050", "")
+                                  : ""
+                              }`}
+                              alt={selectedDriver.name}
+                              className="rounded-circle me-3"
+                              style={{ width: 64, height: 64, objectFit: "cover" }}
+                            />
                             <div>
                               <div className="h5 mb-0">{selectedDriver.name}</div>
-                              <div className="small text-muted">{selectedDriver.email} {selectedDriver.phone ? `— ${selectedDriver.phone}` : ""}</div>
-                              <div className="small">{selectedDriver.license ? `Licencia ${selectedDriver.license}` : ""}{selectedDriver.plate ? ` — Placa ${selectedDriver.plate}` : ""}</div>
-                              <div className="mt-1"><Stars value={selectedDriver.rating || 0} /></div>
+                              <div className="small text-muted">
+                                {selectedDriver.email}{" "}
+                                {selectedDriver.phone ? `— ${selectedDriver.phone}` : ""}
+                              </div>
+                              <div className="small">
+                                {selectedDriver.license
+                                  ? `Licencia ${selectedDriver.license}`
+                                  : ""}
+                                {selectedDriver.plate
+                                  ? ` — Placa ${selectedDriver.plate}`
+                                  : ""}
+                              </div>
+                              <div className="mt-1">
+                                <Stars value={selectedDriver.rating || 0} />
+                              </div>
                             </div>
                           </div>
 
-                          <div className="mb-3">
-                            <h6>Familia</h6>
-                            {(selectedDriver.family || []).length === 0 && <div className="small text-muted">Sin integrantes registrados.</div>}
-                            <div className="list-group mb-2">
-                              {(selectedDriver.family || []).map((f, i) => (
-                                <div key={`${f.firstName}-${i}`} className="list-group-item d-flex justify-content-between align-items-center">
-                                  <div>{f.firstName} {f.lastName} — {f.relation}</div>
-                                  <div className="small text-muted">{f.age} años</div>
-                                </div>
-                              ))}
-                            </div>
+                          {/* === Calcular y mostrar conteo de estrellas (en línea) === */}
+                          {(() => {
+                            const starsCount = [1, 2, 3, 4, 5].reduce((acc, val) => {
+                              acc[val] = ratings.filter(
+                                (r) =>
+                                  Number(r.rate) === val &&
+                                  ((r.driverId && selectedDriver.id && String(r.driverId) === String(selectedDriver.id)) ||
+                                    (r.taxiPlate &&
+                                      selectedDriver.plate &&
+                                      r.taxiPlate.toLowerCase() === String(selectedDriver.plate).toLowerCase()))
+                              ).length;
+                              return acc;
+                            }, {});
 
-                            <form onSubmit={addFamily} className="row g-2">
-                              <div className="col-md-3">
-                                <input name="firstName" className="form-control" placeholder="Nombre" />
-                              </div>
-                              <div className="col-md-3">
-                                <input name="lastName" className="form-control" placeholder="Apellido" />
-                              </div>
-                              <div className="col-md-3">
-                                <input name="relation" className="form-control" placeholder="Parentesco" />
-                              </div>
-                              <div className="col-md-2">
-                                <input name="age" type="number" className="form-control" placeholder="Edad" min={0} />
-                              </div>
-                              <div className="col-md-1 d-grid">
-                                <button className="btn btn-primary">Agregar</button>
-                              </div>
-                            </form>
-                          </div>
+                            const totalRatings = Object.values(starsCount).reduce((a, b) => a + b, 0);
 
+                            return (
+                              <div className="mb-3">
+                                <h6>Distribución de calificaciones</h6>
+                                {totalRatings === 0 ? (
+                                  <div className="small text-muted">Aún no tiene calificaciones.</div>
+                                ) : (
+                                  <div className="d-flex justify-content-between align-items-center flex-wrap bg-light p-2 rounded">
+                                    {[5, 4, 3, 2, 1].map((n) => (
+                                      <div
+                                        key={n}
+                                        className="d-flex align-items-center mx-2 my-1 px-2 py-1 border rounded bg-white shadow-sm"
+                                        style={{ minWidth: 80 }}
+                                      >
+                                        <span className="me-1 fw-semibold">{n}⭐</span>
+                                        <span className="badge bg-warning text-dark">{starsCount[n] || 0}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+
+
+                          {/* === Calificaciones === */}
                           <div>
                             <h6>Calificaciones recibidas</h6>
-                            <input className="form-control mb-2" placeholder="Buscar en los comentarios" value={qRatings} onChange={(e) => setQRatings(e.target.value)} />
+                            <input
+                              className="form-control mb-2"
+                              placeholder="Buscar en los comentarios"
+                              value={qRatings}
+                              onChange={(e) => setQRatings(e.target.value)}
+                            />
+
                             <div className="d-grid gap-2">
                               {ratings
                                 .filter((r) => {
-                                  // permitimos match por driverId (si existe) o por placa (si taxista tiene placa)
-                                  if (r.driverId && selectedDriver.id && String(r.driverId) === String(selectedDriver.id)) return true;
-                                  if (r.taxiPlate && selectedDriver.plate && r.taxiPlate.toLowerCase() === String(selectedDriver.plate).toLowerCase()) return true;
+                                  if (
+                                    r.driverId &&
+                                    selectedDriver.id &&
+                                    String(r.driverId) === String(selectedDriver.id)
+                                  )
+                                    return true;
+                                  if (
+                                    r.taxiPlate &&
+                                    selectedDriver.plate &&
+                                    r.taxiPlate.toLowerCase() ===
+                                      String(selectedDriver.plate).toLowerCase()
+                                  )
+                                    return true;
                                   return false;
                                 })
-                                .filter((r) => ((r.observation || "") + (r.name || "") + (r.email || "")).toLowerCase().includes(qRatings.toLowerCase()))
+                                .filter((r) =>
+                                  ((r.observation || "") + (r.name || "") + (r.email || ""))
+                                    .toLowerCase()
+                                    .includes(qRatings.toLowerCase())
+                                )
                                 .map((r) => (
                                   <div key={r.id} className="border rounded p-3">
                                     <div className="d-flex justify-content-between align-items-center">
                                       <div>
-                                        <div className="small text-muted">Autor: {r.name || "Anónimo"} {r.email ? `— ${r.email}` : ""}</div>
+                                        <div className="small text-muted">
+                                          Autor: {r.name || "Anónimo"}{" "}
+                                          {r.email ? `— ${r.email}` : ""}
+                                        </div>
                                       </div>
                                       <div className="d-flex align-items-center gap-2">
                                         <Stars value={Number(r.rate)} />
-                                        <div className="small text-muted">Placa {r.taxiPlate}</div>
+                                        <div className="small text-muted">
+                                          Placa {r.taxiPlate}
+                                        </div>
                                       </div>
                                     </div>
                                     <div className="mt-2">“{r.observation}”</div>
-                                    <div className="small text-muted mt-1">Fecha: {r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</div>
+                                    <div className="small text-muted mt-1">
+                                      Fecha:{" "}
+                                      {r.createdAt
+                                        ? new Date(r.createdAt).toLocaleString()
+                                        : ""}
+                                    </div>
                                   </div>
                                 ))}
-                              {ratings.filter(r => {
-                                if (r.driverId && selectedDriver.id && String(r.driverId) === String(selectedDriver.id)) return true;
-                                if (r.taxiPlate && selectedDriver.plate && r.taxiPlate.toLowerCase() === String(selectedDriver.plate).toLowerCase()) return true;
+
+                              {/* Sin calificaciones */}
+                              {ratings.filter((r) => {
+                                if (
+                                  r.driverId &&
+                                  selectedDriver.id &&
+                                  String(r.driverId) === String(selectedDriver.id)
+                                )
+                                  return true;
+                                if (
+                                  r.taxiPlate &&
+                                  selectedDriver.plate &&
+                                  r.taxiPlate.toLowerCase() ===
+                                    String(selectedDriver.plate).toLowerCase()
+                                )
+                                  return true;
                                 return false;
                               }).length === 0 && (
-                                <div className="text-muted small p-2">No hay calificaciones para este conductor.</div>
+                                <div className="text-muted small p-2">
+                                  No hay calificaciones para este conductor.
+                                </div>
                               )}
                             </div>
                           </div>
@@ -725,6 +915,7 @@ export default function Admin() {
                       </div>
                     </div>
                   )}
+
                 </div>
               )}
 

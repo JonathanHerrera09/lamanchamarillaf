@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "../index.css";
+// import "../index.css";
 
 // ⭐ Componente de Estrellas (seleccionables)
 function RatingInput({ value, onChange }) {
@@ -41,7 +41,7 @@ function RatingInput({ value, onChange }) {
   );
 }
 
-export default function Index() {
+export default function Calif() {
   const [plate, setPlate] = useState("");
   const [drivers, setDrivers] = useState([]); // 👉 del endpoint
   const [found, setFound] = useState(null);

@@ -30,7 +30,7 @@ export default function Job() {
   const contact = e.currentTarget.contact.value.trim();
   const about = e.currentTarget.about.value.trim();
 
-  if (!nameDriver || !dni || !contact || !cv) {
+  if (!nameDriver || !contact) {
     alert("Completa todos los campos y adjunta tu CV en PDF.");
     return;
   }
@@ -39,7 +39,7 @@ export default function Job() {
   fd.append("nameDriver", nameDriver);
   fd.append("dni", dni);
   fd.append("contact", contact);
-  fd.append("about", about);
+  fd.append("description", about);
   fd.append("cv", cv);
 
   try {
@@ -71,9 +71,9 @@ export default function Job() {
   return (
     <div className="container py-5">
       <div className="mb-4">
-        <h1 className="h3 fw-bold">Trabaja con nosotros</h1>
+        <h1 className="h3 fw-bold">Taxista que busca trabajo.</h1>
         <p className="text-muted">
-          Completa tu información y adjunta tu CV (PDF).
+          Completa tu información.
         </p>
       </div>
 
@@ -104,7 +104,7 @@ export default function Job() {
                 name="dni"
                 type="text"
                 className="form-control"
-                placeholder="1111111"
+                placeholder="Eje: 1234567890"
               />
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function Job() {
             ></textarea>
           </div>
 
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <label className="form-label" htmlFor="cv">
               Subir CV (PDF, máx. 5MB)
             </label>
@@ -168,7 +168,7 @@ export default function Job() {
                 </span>
               )}
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-4">
             <button type="submit" className="btn btn-warning" disabled={submitting}>

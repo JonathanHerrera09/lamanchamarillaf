@@ -15,7 +15,13 @@ export default function Drivep() {
   const [rating, setRating] = useState(0);
   const [offers, setOffers] = useState([]);
   const [showRegister, setShowRegister] = useState(false);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenobj, setIsOpenobj] = useState(false);
+  const [lostReports, setLostReports] = useState([]);
+  const [isOpenRatings, setIsOpenRatings] = useState(false);
+  const [ratings, setRatings] = useState([]);
+  const [isOpenJob, setIsOpenJob] = useState(false);
+  const [appsRequested, setAppsRequested] = useState([]);
   useEffect(() => {
     const raw = localStorage.getItem(SESSION_KEY);
     if (raw) {
@@ -43,7 +49,6 @@ export default function Drivep() {
       localStorage.removeItem(SESSION_KEY);
     }
   }, [session, relatives, rating]);
-
   // -------------------------
   // login real usando el API
   // -------------------------
@@ -92,7 +97,6 @@ export default function Drivep() {
       setSession(driver);
       setRating(driver.rating || 0);
       fetchRelatives(user.id, token);
-      fetchOffers();
       setmydata(user.id, token);
       Swal.fire({
         icon: "success",
@@ -134,7 +138,8 @@ export default function Drivep() {
   const onRegister = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-
+//     console.log("Formulario registro:", Object.fromEntries(fd.entries()));
+// debugger;
     if (
       !fd.get("name") ||
       !fd.get("lastName") ||
@@ -179,47 +184,125 @@ export default function Drivep() {
       });
     }
   };
+  // Cargar las postulaciones
+  const fetchJobApplications = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/job_application`);
+      setAppsRequested(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching job applications:", err);
+      setAppsRequested([]);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las postulaciones",
+      });
+    }
+  };
+  const fetchDriverRatings = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/rate_driver/driver/${session.id}`);
+      setRatings(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching ratings:", err);
+      setRatings([]);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar las calificaciones",
+      });
+    }
+  };
+  // Cargar objetos perdidos
+  const fetchLostItems = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/lost_items`);
+      setLostReports(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching lost items:", err);
+      setLostReports([]);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar los objetos perdidos",
+      });
+    }
+  };
+  // Enviar nuevo objeto perdido
+  const addLostObject = async (e) => {
+    e.preventDefault();
 
+    const formData = new FormData(e.target);
+    formData.append("taxiPlate", session.plate);
+    formData.append("owner", session.name);
+    formData.append("contact", session.phone);
+    formData.append("created_by", "taxista");
+
+    try {
+      await axios.post(`${API_BASE}/lost_items`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Objeto publicado",
+        text: "Tu reporte ha sido enviado correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      e.target.reset();
+      fetchLostItems(); // recargar la lista
+    } catch (err) {
+      console.error("Error enviando objeto perdido:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo publicar el objeto perdido",
+      });
+    }
+  };
   // updateProfile, addRelative, removeRelative, renderStars y JSX (no cambian)
   const updateProfile = async (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.currentTarget);
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
 
-  try {
-    const res = await axios.put(
-      `http://localhost:3050/api/v1/driver/${session.id}`, 
-      fd, 
-      {
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    if (res.data?.code === 1) {
-      const updated = res.data.data;
-      // Actualiza la sesión local con los datos que devuelve el backend
-      setSession((s) => 
-        s ? { 
-          ...s, 
-          id: updated.user.id,
-          name: updated.driver.name,
-          lastName: updated.driver.lastName,
-          dni: updated.driver.dni,
-          phone: updated.driver.phone,
-          plate: updated.driver.taxiPlate,
-          photo: updated.driver.photo,   // 👈 la foto nueva
-        } : s
+    try {
+      const res = await axios.put(
+        `http://localhost:3050/api/v1/driver/${session.id}`, 
+        fd, 
+        {
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      alert("Perfil actualizado con éxito ✅");
+      if (res.data?.code === 1) {
+        const updated = res.data.data;
+        // Actualiza la sesión local con los datos que devuelve el backend
+        setSession((s) => 
+          s ? { 
+            ...s, 
+            id: updated.user.id,
+            name: updated.driver.name,
+            lastName: updated.driver.lastName,
+            dni: updated.driver.dni,
+            phone: updated.driver.phone,
+            plate: updated.driver.taxiPlate,
+            companytaxi: updated.driver.companytaxi,
+            photo: updated.driver.photo,   // 👈 la foto nueva
+          } : s
+        );
+
+        alert("Perfil actualizado con éxito ✅");
+      }
+    } catch (err) {
+      console.error("❌ Error actualizando perfil:", err);
+      alert("No se pudo actualizar el perfil");
     }
-  } catch (err) {
-    console.error("❌ Error actualizando perfil:", err);
-    alert("No se pudo actualizar el perfil");
-  }
-};
+  };
   const addRelative = async (e) => {
     e.preventDefault();
     if (!session?.token) {
@@ -233,8 +316,9 @@ export default function Drivep() {
     const dni = fd.get("dni").trim();
     const relationship = fd.get("relation").trim();
     const phone = fd.get("phone").trim();
+    const emergency = fd.get("emergency").trim();
 
-    if (!name || !lastName || !dni || !relationship || !phone) {
+    if (!name || !lastName || !dni || !relationship || !phone|| !emergency) {
       alert("Todos los campos son obligatorios");
       return;
     }
@@ -247,16 +331,11 @@ export default function Drivep() {
         dni,
         relationship,
         phone,
+        emergency,
       };
-
-      console.log("📤 Enviando familiar:", payload);
-
       const res = await axios.post(`${API_BASE}/driver_family`, payload, {
         headers: { Authorization: `Bearer ${session.token}` },
       });
-
-      console.log("✅ Respuesta backend:", res.data);
-
       if (res.data?.code === 1) {
         fetchRelatives(session.id, session.token);
         e.target.reset();
@@ -269,45 +348,47 @@ export default function Drivep() {
       alert("No se pudo guardar el familiar");
     }
   };
-const fetchRelatives = async (driverId, token) => {
-  try {
-    const res = await axios.get(`${API_BASE}/driver_family/driver/${driverId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const fetchRelatives = async (driverId, token) => {
+    try {
+      const res = await axios.get(`${API_BASE}/driver_family/driver/${driverId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (res.data?.code === 1) {
-      setRelatives(res.data.data);
+      if (res.data?.code === 1) {
+        // console.log("Familiares obtenidos:", res.data.data);
+        setRelatives(res.data.data);
+      }
+    } catch (err) {
+      console.error("❌ Error obteniendo familiares:", err);
     }
-  } catch (err) {
-    console.error("❌ Error obteniendo familiares:", err);
-  }
-};
-const setmydata = async (driverId, token) => {
-  try {
-    const res = await axios.get(`${API_BASE}/driver/${driverId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.data?.code === 1) {
-      const user = res.data.data;
-      setSession((s) => (s ? { ...s, plate: user.taxiPlate, phone: user.phone, dni: user.dni, photo: user.photo, averageRate:user.averageRate } : s));
+  };
+  const setmydata = async (driverId, token) => {
+    try {
+      const res = await axios.get(`${API_BASE}/driver/${driverId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data?.code === 1) {
+        const user = res.data.data;
+        // console.log("Datos del conductor obtenidos:", user);
+        setSession((s) => (s ? { ...s, companytaxi: user.companytaxi, plate: user.taxiPlate, phone: user.phone, dni: user.dni, photo: user.photo, averageRate:user.averageRate } : s));
+      }
+    } catch (err) {
+      console.error("❌ Error obteniendo datos del conductor:", err);
     }
-  } catch (err) {
-    console.error("❌ Error obteniendo datos del conductor:", err);
-  }
-};
-const removeRelative = async (id) => {
-  try {
-    await axios.delete(`http://localhost:3050/api/v1/driver_family/${id}`, {
-      headers: {
-        Authorization: `Bearer ${session.token}`,
-      },
-    });
-    fetchRelatives(session.id, session.token);
-  } catch (error) {
-    console.error("Error eliminando familiar:", error);
-    alert("No se pudo eliminar el familiar, intenta nuevamente.");
-  }
-};
+  };
+  const removeRelative = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3050/api/v1/driver_family/${id}`, {
+        headers: {
+          Authorization: `Bearer ${session.token}`,
+        },
+      });
+      fetchRelatives(session.id, session.token);
+    } catch (error) {
+      console.error("Error eliminando familiar:", error);
+      alert("No se pudo eliminar el familiar, intenta nuevamente.");
+    }
+  };
   const addOffer = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -349,6 +430,10 @@ const removeRelative = async (id) => {
   useEffect(() => {
   if (session?.id && session?.token) {
     fetchOffers(session);
+    fetchOffers();
+    fetchLostItems();
+    fetchJobApplications();
+    fetchDriverRatings();
     // setmydata(session.id, session.token);
   }
 }, [session]);
@@ -358,7 +443,6 @@ const fetchOffers = async (session) => {
   try {
     const { data } = await axios.get("http://localhost:3050/api/v1/job_board/all", {
       headers: {
-        // Authorization: `Bearer ${session.token}`, // si tu API requiere token
         authorization: `${process.env.REACT_APP_TOKEN_PUBLIC}`,
       },
     });
@@ -415,7 +499,7 @@ const deleteOffer = async (id) => {
 );
   // JSX: (se mantiene igual que el original, sólo que onLogin y onRegister referencian las funciones nuevas)
   return (
-    <div className="container-fluid min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+    <div className="container-fluid min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light py-5">
       <h2 className="mb-4">Portal del Taxista</h2>
 
       {!session ? (
@@ -449,6 +533,10 @@ const deleteOffer = async (id) => {
                   <div className="col-md-6">
                     <label className="form-label">Placa</label>
                     <input name="taxiPlate" className="form-control text-uppercase" />
+                  </div>
+                  <div className="col-md-12">
+                    <label className="form-label">Registrar empresa que labora el taxista</label>
+                    <input name="companytaxi" className="form-control text-uppercase" />
                   </div>
                   <div className="col-md-12">
                     <label className="form-label">Foto</label>
@@ -518,29 +606,34 @@ const deleteOffer = async (id) => {
               </div>
 
               <form onSubmit={updateProfile}>
-                <div className="mb-2">
-                  <label className="form-label">Nombre</label>
-                  <input name="name" className="form-control bg-light border-0 shadow-sm" defaultValue={session.name} />
-                </div>
-
                 <div className="row">
-                  <div className="col-md-4 mb-2">
-                    <label className="form-label">Cedula</label>
-                    <input name="dni" className="form-control bg-light border-0 shadow-sm" defaultValue={session.dni} />
-                  </div>
-                  <div className="col-md-4 mb-2">
-                    <label className="form-label">Teléfono</label>
-                    <input name="phone" className="form-control bg-light border-0 shadow-sm" defaultValue={session.phone} />
-                  </div>
+                    <div className="col-md-4 mb-2">
+                      <label className="form-label">Nombre</label>
+                      <input name="name" className="form-control bg-light border-0 shadow-sm" defaultValue={session.name} />
+                    </div>
+                    <div className="col-md-4 mb-2">
+                      <label className="form-label">Cedula</label>
+                      <input name="dni" className="form-control bg-light border-0 shadow-sm" defaultValue={session.dni} />
+                    </div>
+                    <div className="col-md-4 mb-2">
+                      <label className="form-label">Teléfono</label>
+                      <input name="phone" className="form-control bg-light border-0 shadow-sm" defaultValue={session.phone} />
+                    </div>
+                </div>
+                <div className="row">
                   <div className="col-md-4 mb-2">
                     <label className="form-label">Placa</label>
                     <input name="plate" className="form-control bg-light border-0 shadow-sm text-uppercase" defaultValue={session.plate} />
+                  </div>
+                  <div className="col-md-4 mb-2">
+                    <label className="form-label">Empresa</label>
+                    <input name="companytaxi" className="form-control bg-light border-0 shadow-sm text-uppercase" defaultValue={session.companytaxi} />
                   </div>
                 </div>
 
                 {/* campo de foto */}
                 <div className="mb-2">
-                  <label className="form-label">Foto</label>
+                  <label className="form-label">Subir foto de perfil</label>
                   <input type="file" name="photo" className="form-control bg-light border-0 shadow-sm" accept="image/*" />
                 </div>
 
@@ -561,7 +654,8 @@ const deleteOffer = async (id) => {
           <div className="col-lg-6">
             <div className="shadow p-4 bg-white rounded">
               <h5 className="fw-bold">Familia</h5>
-              <p className="text-muted small">Inscribe a tus familiares</p>
+              <p className="text-muted small">¿Quieres pertenecer al club familiar?</p>
+              <p className="text-muted small">Registra a tus familiares</p>
 
               <form onSubmit={addRelative} className="row g-2">
                 <div className="col-md-6">
@@ -579,92 +673,410 @@ const deleteOffer = async (id) => {
                 <div className="col-md-6">
                   <input type="text" name="phone" placeholder="Teléfono" className="form-control bg-light border-0 shadow-sm" required />
                 </div>
+                <div className="col-md-6">
+                  <select name="emergency" className="form-control bg-light border-0 shadow-sm" defaultValue="">
+                    <option value="" disabled>Contacto de emergencia</option>
+                    <option value="1">Sí</option>
+                    <option value="0">No</option>
+                  </select>
+                </div>
                 <div className="col-12">
                   <button type="submit" className="btn btn-warning fw-bold w-100">
-                    Agregar integrante
+                    Agregar un familiar
                   </button>
                 </div>
               </form>
 
               {relatives.length > 0 && (
-                <ul className="list-group list-group-flush mt-3">
-                  {relatives.map((r, i) => (
-                    <li key={i} className="list-group-item bg-light d-flex justify-content-between align-items-center rounded mb-2 shadow-sm border-0">
-                      {r.name} {r.lastName} — {r.relationship} — {r.phone} — {r.dni}
-                      <button onClick={() => removeRelative(r.id)} className="btn btn-link text-danger p-0">
-                        Quitar
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-4">
+                  <h6 className="fw-bold mb-2">Lista de familiares</h6>
+                  <div className="table-responsive">
+                    <table className="table table-sm align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Parentesco</th>
+                          <th>Teléfono</th>
+                          <th>Documento</th>
+                          <th>Emergencia</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {relatives.map((r, i) => (
+                          <tr
+                            key={i}
+                            className={r.emergency === "1" ? "table-warning fw-bold" : ""}
+                          >
+                            <td>{r.name} {r.lastName}</td>
+                            <td>{r.relationship}</td>
+                            <td>{r.phone}</td>
+                            <td>{r.dni}</td>
+                            <td>
+                              {r.emergency == 1 ? (
+                                <span className="badge bg-danger">Emergencia</span>
+                              ) : (
+                                <span className="badge bg-secondary">No</span>
+                              )}
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => removeRelative(r.id)}
+                                className="btn btn-link text-danger p-0"
+                              >
+                                Quitar
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* ofertas laborales */}
           <div className="col-12">
             <div className="shadow p-4 bg-white rounded">
-              <h5 className="fw-bold">Ofertas laborales</h5>
-              <p className="text-muted small">Publica una oferta para tus contactos</p>
+              {/* Encabezado con toggle */}
+              <div
+                onClick={() => setIsOpen(!isOpen)}
+                className="d-flex justify-content-between align-items-center cursor-pointer"
+                style={{ cursor: "pointer" }}
+              >
+                <div>
+                  <h5 className="fw-bold mb-0">Propietario de taxi que busca trabajador taxista</h5>
+                  <p className="text-muted small mb-0">Publica una oferta para tus contactos</p>
+                </div>
+                <span className="fs-4 text-warning">
+                  {isOpen ? "▾" : "▸"}
+                </span>
+              </div>
 
-              <form onSubmit={addOffer} className="row g-2">
-                <div className="col-md-6">
-                  <input name="contact" className="form-control bg-light border-0 shadow-sm" placeholder="Teléfono o correo" />
-                </div>
-                <div className="col-md-6">
-                  <input name="location" className="form-control bg-light border-0 shadow-sm" placeholder="Ubicación" />
-                </div>
-                <div className="col-md-12">
-                  <textarea name="description" className="form-control bg-light border-0 shadow-sm" placeholder="Descripción del empleo" rows="3"></textarea>
-                </div>
-                <div className="col-12">
-                  <button type="submit" className="btn btn-warning fw-bold w-100">
-                    Publicar oferta
-                  </button>
-                </div>
-              </form>
+              {/* Contenido que se expande/colapsa */}
+              <div
+                className={`overflow-hidden transition-all`}
+                style={{
+                  maxHeight: isOpen ? "2000px" : "0",
+                  opacity: isOpen ? 1 : 0,
+                  transition: "all 0.5s ease",
+                }}
+              >
+                <hr />
 
-              {offers.length > 0 && (
-                <ul className="list-group list-group-flush mt-3">
-                  {offers.map((o) => (
-                    <li
-                      key={o.id}
-                      className="list-group-item bg-light rounded mb-2 shadow-sm border-0 d-flex justify-content-between align-items-center"
-                    >
-                      <div>
-                        <strong>{session.name}</strong> — {o.description}
-                        <br />
-                        📍 {o.location} | 📞 {o.contact}
-                      </div>
-                      <div className="btn-group">
-                        {o.status === "1" ? (
+                {/* Formulario */}
+                <form onSubmit={addOffer} className="row g-2">
+                  <div className="col-md-6">
+                    <input
+                      name="contact"
+                      className="form-control bg-light border-0 shadow-sm"
+                      placeholder="Teléfono o correo"
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <input
+                      name="location"
+                      className="form-control bg-light border-0 shadow-sm"
+                      placeholder="Ubicación"
+                    />
+                  </div>
+                  <div className="col-md-12">
+                    <textarea
+                      name="description"
+                      className="form-control bg-light border-0 shadow-sm"
+                      placeholder="Descripción del empleo"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                  <div className="col-12">
+                    <button type="submit" className="btn btn-warning fw-bold w-100">
+                      Publicar oferta
+                    </button>
+                  </div>
+                </form>
+
+                {/* Lista de ofertas */}
+                {offers.length > 0 && (
+                  <ul className="list-group list-group-flush mt-3">
+                    {offers.map((o) => (
+                      <li
+                        key={o.id}
+                        className="list-group-item bg-light rounded mb-2 shadow-sm border-0 d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <strong>{session.name}</strong> — {o.description}
+                          <br />
+                          📍 {o.location} | 📞 {o.contact}
+                        </div>
+                        <div className="btn-group">
+                          {o.status === "1" ? (
+                            <button
+                              className="btn btn-sm btn-warning"
+                              onClick={() => updateStatus(o.id, "2")}
+                            >
+                              Deshabilitar
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() => updateStatus(o.id, "1")}
+                            >
+                              Habilitar
+                            </button>
+                          )}
                           <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => updateStatus(o.id, "2")}
+                            className="btn btn-sm btn-danger"
+                            onClick={() => deleteOffer(o.id)}
                           >
-                            Deshabilitar
+                            Eliminar
                           </button>
-                        ) : (
-                          <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => updateStatus(o.id, "1")}
-                          >
-                            Habilitar
-                          </button>
-                        )}
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => deleteOffer(o.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
+{/* Obejetos perdidos */}
+
+          <div className="col-12 mt-4">
+            <div className="shadow p-4 bg-white rounded">
+              {/* Encabezado con toggle */}
+              <div
+                onClick={() => setIsOpenobj(!isOpenobj)}
+                className="d-flex justify-content-between align-items-center"
+                style={{ cursor: "pointer" }}
+              >
+                <div>
+                  <h5 className="fw-bold mb-0">Encontré objeto perdido</h5>
+                  <p className="text-muted small mb-0">
+                    Publica si encontraste un objeto extraviado
+                  </p>
+                </div>
+                <span className="fs-4 text-warning">{isOpenobj ? "▾" : "▸"}</span>
+              </div>
+
+              {/* Contenido */}
+              <div
+                className="overflow-hidden"
+                style={{
+                  maxHeight: isOpenobj ? "2000px" : "0",
+                  opacity: isOpenobj ? 1 : 0,
+                  transition: "all 0.5s ease",
+                }}
+              >
+                <hr />
+
+                {/* Formulario */}
+                <form onSubmit={addLostObject} className="row g-2">
+                  <div className="col-md-12">
+                    <textarea
+                      name="description"
+                      className="form-control bg-light border-0 shadow-sm"
+                      placeholder="Descripción del objeto encontrado"
+                      rows="3"
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div className="col-md-6">
+                    <input
+                      type="date"
+                      name="date_travel"
+                      className="form-control bg-light border-0 shadow-sm"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <input
+                      type="file"
+                      name="photo"
+                      accept="image/*"
+                      className="form-control bg-light border-0 shadow-sm"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <button type="submit" className="btn btn-warning fw-bold w-100">
+                      Publicar objeto perdido
+                    </button>
+                  </div>
+                </form>
+
+                {/* Lista de objetos perdidos */}
+                {lostReports.length > 0 && (
+                  <div className="mt-4">
+                    <h6 className="fw-bold mb-2">Objetos reportados</h6>
+                    <div className="table-responsive">
+                      <table className="table table-bordered align-middle">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Foto</th>
+                            <th>Descripción</th>
+                            <th>Taxista</th>
+                            <th>Placa</th>
+                            <th>Contacto</th>
+                            <th>Fecha viaje</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lostReports.map((item, i) => (
+                            <tr key={i}>
+                              <td style={{ width: "80px" }}>
+                                {item.photo ? (
+                                  <img
+                                    src={item.photo}
+                                    alt="objeto"
+                                    className="img-fluid rounded"
+                                  />
+                                ) : (
+                                  <span className="text-muted small">Sin foto</span>
+                                )}
+                              </td>
+                              <td>{item.description}</td>
+                              <td>{item.owner}</td>
+                              <td>{item.taxiPlate}</td>
+                              <td>{item.contact}</td>
+                              <td>{item.date_travel}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Solicitudes de empleo */}
+          <div className="col-12 mt-4">
+            <div className="shadow p-4 bg-white rounded">
+              {/* Encabezado acordeón */}
+              <div
+                onClick={() => setIsOpenJob(!isOpenJob)}
+                className="d-flex justify-content-between align-items-center"
+                style={{ cursor: "pointer" }}
+              >
+                <div>
+                  <h5 className="fw-bold mb-0">Personas que buscan empleo</h5>
+                  <p className="text-muted small mb-0">
+                    Visualiza las personas interesadas en trabajar contigo
+                  </p>
+                </div>
+                <span className="fs-4 text-warning">{isOpenJob ? "▾" : "▸"}</span>
+              </div>
+
+              {/* Contenido del acordeón */}
+              <div
+                className="overflow-hidden"
+                style={{
+                  maxHeight: isOpenJob ? "2000px" : "0",
+                  opacity: isOpenJob ? 1 : 0,
+                  transition: "all 0.5s ease",
+                }}
+              >
+                <hr />
+
+                {appsRequested.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-bordered align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Documento</th>
+                          <th>Teléfono</th>
+                          <th>Sobre él</th>
+                          <th>Fecha de postulación</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {appsRequested.map((app, i) => (
+                          <tr key={i}>
+                            <td>{app.nameDriver}</td>
+                            <td>{app.dni}</td>
+                            <td>{app.contact}</td>
+                            <td>{app.description || "No especificada"}</td>
+                            <td>{app.createdAt||  ""}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-center text-muted small mt-3">
+                    No hay personas que hayan solicitado empleo aún.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Calificaciones del conductor */}
+          <div className="col-12 mt-4">
+            <div className="shadow p-4 bg-white rounded">
+              {/* Encabezado acordeón */}
+              <div
+                onClick={() => setIsOpenRatings(!isOpenRatings)}
+                className="d-flex justify-content-between align-items-center"
+                style={{ cursor: "pointer" }}
+              >
+                <div>
+                  <h5 className="fw-bold mb-0">Calificaciones recibidas</h5>
+                  <p className="text-muted small mb-0">
+                    Visualiza las opiniones de tus pasajeros
+                  </p>
+                </div>
+                <span className="fs-4 text-warning">{isOpenRatings ? "▾" : "▸"}</span>
+              </div>
+
+              {/* Contenido del acordeón */}
+              <div
+                className="overflow-hidden"
+                style={{
+                  maxHeight: isOpenRatings ? "2000px" : "0",
+                  opacity: isOpenRatings ? 1 : 0,
+                  transition: "all 0.5s ease",
+                }}
+              >
+                <hr />
+
+                {ratings.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-bordered align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Observación</th>
+                          <th>Calificación</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ratings.map((r, i) => (
+                          <tr key={i}>
+                            <td>{r.name || "Cliente Anónimo"}</td>
+                            <td>{r.observation || "Sin comentarios"}</td>
+                            <td className="text-warning fw-bold">
+                              ⭐ {r.rate || "N/A"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-center text-muted small mt-3">
+                    No tienes calificaciones aún.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
     </div>
