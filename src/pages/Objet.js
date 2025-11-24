@@ -67,96 +67,134 @@ export default function Objet() {
         </p>
       </div>
 
-      {/* 🔸 FORMULARIO */}
-      <div className="shadow rounded p-4 bg-white mb-5">
-        <h5 className="mb-3">Nuevo reporte</h5>
-        <form onSubmit={onSubmit}>
-          <div className="row g-3">
-            <div className="col-md-4">
-              <label htmlFor="taxiPlate" className="form-label">Placa del taxi</label>
-              <input id="taxiPlate" name="taxiPlate" type="text" className="form-control" placeholder="ABC123" />
-            </div>
-
-            <div className="col-md-4">
-              <label htmlFor="date_travel" className="form-label">Fecha del viaje</label>
-              <input id="date_travel" name="date_travel" type="date" className="form-control" />
-            </div>
-
-            <div className="col-md-4">
-              <label htmlFor="photo" className="form-label">Foto del objeto</label>
-              <input id="photo" name="photo" type="file" className="form-control" />
-            </div>
-          </div>
-
-          <div className="mt-3">
-            <label htmlFor="description" className="form-label">Descripción</label>
-            <textarea id="description" name="description" className="form-control" rows="3"></textarea>
-          </div>
-
-          <div className="row g-3 mt-3">
-            <div className="col-md-6">
-              <label htmlFor="owner" className="form-label">Nombre y apellido</label>
-              <input id="owner" name="owner" type="text" className="form-control" />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="contact" className="form-label">Teléfono</label>
-              <input id="contact" name="contact" type="text" className="form-control" />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <button type="submit" className="btn btn-warning" disabled={loading}>
-              {loading ? "Enviando..." : "Enviar reporte"}
+      {/* 🔸 ACORDEÓN PRINCIPAL */}
+      <div className="accordion" id="mainAccordion">
+        
+        {/* PANEL 2: LISTA DE OBJETOS PERDIDOS (EN CARDS) */}
+        <div className="accordion-item">
+          <h2 className="accordion-header" id="headingReports">
+            <button
+              className="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseReports"
+              aria-expanded="false"
+              aria-controls="collapseReports"
+            >
+              📋 Reportes recientes
             </button>
-          </div>
-        </form>
-      </div>
-
-      {/* 🔸 LISTA DE REPORTES (ACORDEÓN) */}
-      <div className="accordion" id="lostItemsAccordion">
-        <h4 className="mb-3">Reportes recientes</h4>
-        {lostItems.length === 0 ? (
-          <p className="text-muted">No hay reportes aún.</p>
-        ) : (
-          lostItems.map((item, i) => (
-            <div key={i} className="accordion-item mb-2">
-              <h2 className="accordion-header" id={`heading${i}`}>
-                <button
-                  className="accordion-button collapsed bg-dark text-white"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target={`#collapse${i}`}
-                  aria-expanded="false"
-                  aria-controls={`collapse${i}`}
-                >
-                  🚖 {item.taxiPlate} — {item.owner}
-                </button>
-              </h2>
-              <div
-                id={`collapse${i}`}
-                className="accordion-collapse collapse"
-                aria-labelledby={`heading${i}`}
-                data-bs-parent="#lostItemsAccordion"
-              >
-                <div className="accordion-body">
-                  <p><strong>Descripción:</strong> {item.description}</p>
-                  <p><strong>Fecha del viaje:</strong> {item.date_travel}</p>
-                  <p><strong>Teléfono:</strong> {item.contact}</p>
-                  {item.photo && (
-                    <div className="mt-2">
-                      <strong>Foto:</strong><br />
-                      <img
-                        src={item.photo}
-                        alt="Objeto perdido"
-                        style={{ maxWidth: "200px", borderRadius: "8px" }}
-                      />
+          </h2>
+          <div
+            id="collapseReports"
+            className="accordion-collapse collapse"
+            aria-labelledby="headingReports"
+            data-bs-parent="#mainAccordion"
+          >
+            <div className="accordion-body">
+              {lostItems.length === 0 ? (
+                <p className="text-muted">No hay reportes aún.</p>
+              ) : (
+                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                  {lostItems.map((item, i) => (
+                    <div key={i} className="col">
+                      <div className="card h-100 shadow-sm">
+                        <div className="card-body">
+                          <h6 className="card-title">
+                            🚖 {item.taxiPlate} — <small>{item.owner}</small>
+                          </h6>
+                          <p className="card-text">
+                            <strong>Descripción:</strong> {item.description}
+                          </p>
+                          <p className="card-text">
+                            <strong>Fecha del viaje:</strong> {item.date_travel}
+                          </p>
+                          <p className="card-text">
+                            <strong>Teléfono:</strong> {item.contact}
+                          </p>
+                          {item.photo && (
+                            <div className="mt-2">
+                              <img
+                                src={item.photo}
+                                alt="Objeto perdido"
+                                className="img-fluid"
+                                style={{ maxHeight: "150px", objectFit: "contain" }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+        {/* PANEL 1: FORMULARIO */}
+        <div className="accordion-item mb-3">
+          <h2 className="accordion-header" id="headingForm">
+            <button
+              className="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseForm"
+              aria-expanded="false"
+              aria-controls="collapseForm"
+            >
+              📝 No encuentras tu objeto, reportalo
+            </button>
+          </h2>
+          <div
+            id="collapseForm"
+            className="accordion-collapse collapse"
+            aria-labelledby="headingForm"
+            data-bs-parent="#mainAccordion"
+          >
+            <div className="accordion-body">
+              <div className="shadow rounded p-4 bg-white">
+                <form onSubmit={onSubmit}>
+                  <div className="row g-3">
+                    <div className="col-md-4">
+                      <label htmlFor="taxiPlate" className="form-label">Placa del taxi</label>
+                      <input id="taxiPlate" name="taxiPlate" type="text" className="form-control" placeholder="ABC123" />
+                    </div>
+                    <div className="col-md-4">
+                      <label htmlFor="date_travel" className="form-label">Fecha del viaje</label>
+                      <input id="date_travel" name="date_travel" type="date" className="form-control" />
+                    </div>
+                    <div className="col-md-4">
+                      <label htmlFor="photo" className="form-label">Foto del objeto</label>
+                      <input id="photo" name="photo" type="file" className="form-control" />
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="description" className="form-label">Descripción</label>
+                    <textarea id="description" name="description" className="form-control" rows="3"></textarea>
+                  </div>
+
+                  <div className="row g-3 mt-3">
+                    <div className="col-md-6">
+                      <label htmlFor="owner" className="form-label">Nombre y apellido</label>
+                      <input id="owner" name="owner" type="text" className="form-control" />
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="contact" className="form-label">Teléfono</label>
+                      <input id="contact" name="contact" type="text" className="form-control" />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button type="submit" className="btn btn-warning" disabled={loading}>
+                      {loading ? "Enviando..." : "Enviar reporte"}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-          ))
-        )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

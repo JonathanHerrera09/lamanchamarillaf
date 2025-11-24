@@ -242,12 +242,67 @@ export default function Admin() {
       Swal.fire({ icon: "error", title: "Login fallido", text: msg, confirmButtonColor: "#dc3545" });
     }
   };
+  // --- DELETE FUNCTIONS ---
+  const deleteRating = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/rate_driver/${id}`);
+      setRatings((prev) => prev.filter((r) => r.id !== id));
+      Swal.fire({ icon: "success", title: "Eliminado", text: "Calificación eliminada", confirmButtonColor: "#28a745" });
+    } catch (err) {
+      console.error("Error al eliminar calificación:", err);
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar la calificación" });
+    }
+  };
 
+  const deleteJobApplication = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/job_application/${id}`);
+      setAppsRequested((prev) => prev.filter((a) => a.id !== id));
+      Swal.fire({ icon: "success", title: "Eliminado", text: "Postulación eliminada", confirmButtonColor: "#28a745" });
+    } catch (err) {
+      console.error("Error al eliminar postulación:", err);
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar la postulación" });
+    }
+  };
+
+  const deleteJobPromotion = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/job_board/${id}`);
+      setJobsPromoted((prev) => prev.filter((j) => j.id !== id));
+      Swal.fire({ icon: "success", title: "Eliminado", text: "Vacante eliminada", confirmButtonColor: "#28a745" });
+    } catch (err) {
+      console.error("Error al eliminar vacante:", err);
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar la vacante" });
+    }
+  };
+
+  const deleteLostItem = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/lost_items/${id}`);
+      setLostReports((prev) => prev.filter((r) => r.id !== id));
+      Swal.fire({ icon: "success", title: "Eliminado", text: "Reporte de objeto perdido eliminado", confirmButtonColor: "#28a745" });
+    } catch (err) {
+      console.error("Error al eliminar objeto perdido:", err);
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar el reporte" });
+    }
+  };
+
+  const deleteDriver = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/driver/${id}`);
+      setDrivers((prev) => prev.filter((d) => d.id !== id));
+      if (selectedDriverId === id) setSelectedDriverId(null);
+      Swal.fire({ icon: "success", title: "Eliminado", text: "Conductor eliminado", confirmButtonColor: "#28a745" });
+    } catch (err) {
+      console.error("Error al eliminar conductor:", err);
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar al conductor" });
+    }
+  };
   const onLogout = () => {
-      setSession(null);
-      sessionStorage.removeItem(TOKEN_KEY);
-      delete axios.defaults.headers.common["Authorization"];
-    };
+    setSession(null);
+    sessionStorage.removeItem(TOKEN_KEY);
+    delete axios.defaults.headers.common["Authorization"];
+  };
 
     // Crear nuevo taxista local (sigue funcionando como antes)
   const createDriver = async (e) => {
@@ -523,6 +578,26 @@ export default function Admin() {
                               <div className="d-flex align-items-center gap-2">
                                 <Stars value={Number(r.rate)} />
                                 <span className="small text-muted">{r.rate}/5</span>
+                                <button
+                                  className="btn btn-sm btn-outline-danger ms-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    Swal.fire({
+                                      title: "¿Eliminar?",
+                                      text: "Esta acción no se puede deshacer",
+                                      icon: "warning",
+                                      showCancelButton: true,
+                                      confirmButtonColor: "#d33",
+                                      cancelButtonColor: "#6c757d",
+                                      confirmButtonText: "Sí, eliminar",
+                                      cancelButtonText: "Cancelar"
+                                    }).then((result) => {
+                                      if (result.isConfirmed) deleteRating(r.id);
+                                    });
+                                  }}
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
                                 <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedRating(r)}>Ver</button>
                               </div>
                             </div>
@@ -557,7 +632,29 @@ export default function Admin() {
                                 <strong>{a.nameDriver}</strong>
                                 <div className="small text-muted">{a.dni} — {a.contact}</div>
                               </div>
+                              <div>
+                              <button
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  Swal.fire({
+                                    title: "¿Eliminar postulación?",
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#d33",
+                                    cancelButtonColor: "#6c757d",
+                                    confirmButtonText: "Sí, eliminar",
+                                    cancelButtonText: "Cancelar"
+                                  }).then((result) => {
+                                    if (result.isConfirmed) deleteJobApplication(a.id);
+                                  });
+                                }}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
                               <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedRequested(a)}>Ver</button>
+                              
+                            </div>
                             </div>
                             <div className="mt-1 small text-muted">CV: {a.cv ? <a href={a.cv} target="_blank" rel="noreferrer">Ver</a> : "—"}</div>
                             <div className="small text-muted mt-1">Fecha: {a.createdAt ? new Date(a.createdAt).toLocaleString() : ""}</div>
@@ -588,7 +685,28 @@ export default function Admin() {
                                 <strong>{j.description}</strong>
                                 <div className="small text-muted">{j.location} — {j.contact}</div>
                               </div>
+                              <div>
+                              <button
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  Swal.fire({
+                                    title: "¿Eliminar vacante?",
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#d33",
+                                    cancelButtonColor: "#6c757d",
+                                    confirmButtonText: "Sí, eliminar",
+                                    cancelButtonText: "Cancelar"
+                                  }).then((result) => {
+                                    if (result.isConfirmed) deleteJobPromotion(j.id);
+                                  });
+                                }}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
                               <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedPromoted(j)}>Ver</button>
+                            </div>
                             </div>
                           </div>
                         ))}
@@ -618,7 +736,29 @@ export default function Admin() {
                                 <div className="small text-muted">{r.description}</div>
                                 <div className="small text-muted">Dueño: {r.owner} — {r.contact}</div>
                               </div>
+                              <div>
+                              <button
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  Swal.fire({
+                                    title: "¿Eliminar reporte?",
+                                    text: "Se perderá toda la información del objeto",
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#d33",
+                                    cancelButtonColor: "#6c757d",
+                                    confirmButtonText: "Sí, eliminar",
+                                    cancelButtonText: "Cancelar"
+                                  }).then((result) => {
+                                    if (result.isConfirmed) deleteLostItem(r.id);
+                                  });
+                                }}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
                               <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedLost(r)}>Ver</button>
+                            </div>
                             </div>
                           </div>
                         ))}

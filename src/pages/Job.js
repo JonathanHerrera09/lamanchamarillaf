@@ -73,7 +73,8 @@ export default function Job() {
       <div className="mb-4">
         <h1 className="h3 fw-bold">Taxista que busca trabajo.</h1>
         <p className="text-muted">
-          Completa tu información.
+          Completa tu información. <br></br>
+          No somos responsables laborales, somos el puente entre conductor y propietario del taxi.
         </p>
       </div>
 
@@ -122,18 +123,6 @@ export default function Job() {
                 placeholder="Ej.: +57 300 000 0000"
               />
             </div>
-            {/* <div className="col-md-6">
-              <label className="form-label" htmlFor="position">
-                Cargo de interés
-              </label>
-              <input
-                id="position"
-                name="position"
-                type="text"
-                className="form-control"
-                placeholder="Conductor / Atención al cliente / ..."
-              />
-            </div> */}
           </div>
 
           <div className="mt-3">
@@ -148,28 +137,6 @@ export default function Job() {
               placeholder="Cuéntanos tu experiencia"
             ></textarea>
           </div>
-
-          {/* <div className="mt-3">
-            <label className="form-label" htmlFor="cv">
-              Subir CV (PDF, máx. 5MB)
-            </label>
-            <div className="d-flex align-items-center gap-2 mt-2">
-              <input
-                id="cv"
-                name="cv"
-                type="file"
-                className="form-control"
-                accept="application/pdf"
-                onChange={(e) => handleFile(e.target.files?.[0] || null)}
-              />
-              {cv && (
-                <span className="small text-muted text-truncate">
-                  {cv.name}
-                </span>
-              )}
-            </div>
-          </div> */}
-
           <div className="mt-4">
             <button type="submit" className="btn btn-warning" disabled={submitting}>
               {submitting ? "Enviando..." : "Enviar postulación"}

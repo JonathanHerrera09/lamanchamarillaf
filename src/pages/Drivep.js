@@ -535,7 +535,7 @@ const deleteOffer = async (id) => {
                     <input name="taxiPlate" className="form-control text-uppercase" />
                   </div>
                   <div className="col-md-12">
-                    <label className="form-label">Registrar empresa que labora el taxista</label>
+                    <label className="form-label">Registrar empresa vinculada del taxi</label>
                     <input name="companytaxi" className="form-control text-uppercase" />
                   </div>
                   <div className="col-md-12">
