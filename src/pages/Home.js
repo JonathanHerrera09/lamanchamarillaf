@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "../styles/Home.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "swiper/css";
@@ -7,11 +7,16 @@ import "swiper/css/pagination";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { FaPlay, FaPause, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
+import { Modal } from "react-bootstrap";
+import axios from "axios";
 
 export default function Home() {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [rates, setRates] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupImage, setPopupImage] = useState(null);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -23,11 +28,78 @@ export default function Home() {
     setIsPlaying(!isPlaying);
   };
 
+  const getPopupImage = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/images`);
+      if (res.data && res.data.code === 1 && res.data.data) {
+        setPopupImage(res.data.data);
+        setShowPopup(true);
+      }
+    } catch (err) {
+      console.error("Error fetching popup image:", err);
+    }
+  };
+
   const toggleMute = () => {
     if (!audioRef.current) return;
     audioRef.current.muted = !audioRef.current.muted;
     setIsMuted(!isMuted);
   };
+
+  const getRates = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/rate_driver/top`);
+      if (res.data.code === 1) setRates(res.data.data);
+    } catch (error) {
+      console.error("Error fetching rates:", error);
+      const testimonios = [
+  {
+    id: 9,
+    driverId: 1,
+    taxiPlate: "ABC123",
+    name: "Jonathan",
+    email: "jonathan@jonathan.com",
+    contact: "312688773",
+    observation: "Buen conductor mal carril",
+    rate: "4",
+    createdAt: "2025-10-08T01:55:38.000Z",
+    updatedAt: "2025-10-08T01:55:38.000Z",
+    deletedAt: null
+  },
+  {
+    id: 10,
+    driverId: 2,
+    taxiPlate: "XYZ987",
+    name: "María",
+    email: "maria@maria.com",
+    contact: "310555999",
+    observation: "Servicio puntual, buena vibra",
+    rate: "5",
+    createdAt: "2025-10-09T11:22:10.000Z",
+    updatedAt: "2025-10-09T11:22:10.000Z",
+    deletedAt: null
+  },
+  {
+    id: 11,
+    driverId: 3,
+    taxiPlate: "JKL456",
+    name: "Carlos",
+    email: "carlos@carlos.com",
+    contact: "300112233",
+    observation: "Conductor amable, taxi limpio",
+    rate: "5",
+    createdAt: "2025-10-10T07:40:55.000Z",
+    updatedAt: "2025-10-10T07:40:55.000Z",
+    deletedAt: null
+  }
+];      setRates(testimonios);
+    }
+  };
+
+  useEffect(() => {
+    getRates();
+    getPopupImage();
+  }, []);
 
   return (
     <>
@@ -282,34 +354,21 @@ export default function Home() {
       </section>
       {/* ================= TESTIMONIOS ================= */}
       <section className="testimonials">
-        <div className="container">
-          <h2 className="section-title">Lo que dicen nuestros usuarios</h2>
-          <p className="section-subtitle">Conoce la experiencia de quienes usan nuestros servicios de taxi</p>
+  <div className="container">
+    <h2 className="section-title">Lo que dicen nuestros usuarios</h2>
+    <p className="section-subtitle">Conoce la experiencia de quienes usan nuestros servicios de taxi</p>
 
-          <div className="testimonials-grid">
-            {/* Testimonio 1 */}
-            <div className="testimonial-card">
-              <div className="quote">“</div>
-              <p>Una experiencia segura y confiable, me siento tranquila usando el servicio todos los días.</p>
-              <div className="stars">★★★★★</div>
-            </div>
-
-            {/* Testimonio 2 */}
-            <div className="testimonial-card">
-              <div className="quote">“</div>
-              <p>Excelente aplicación, muy intuitiva y el servicio de atención es rápido y efectivo.</p>
-              <div className="stars">★★★★★</div>
-            </div>
-
-            {/* Testimonio 3 */}
-            <div className="testimonial-card">
-              <div className="quote">“</div>
-              <p>El servicio ha mejorado mucho, los conductores son amables y los taxis llegan rápido. Muy recomendado.</p>
-              <div className="stars">★★★★★</div>
-            </div>
-          </div>
+    <div className="testimonials-grid">
+      {rates.slice(0, 3).map((t) => (
+        <div key={t.id} className="testimonial-card">
+          <div className="quote">“</div>
+          <p>{t.observation}</p>
+          <div className="stars">{"★".repeat(Number(t.rate))}</div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* ================= ÚNETE A LA MANCHA AMARILLA ================= */}
       <section id="contacto" className="unete-section py-5">
@@ -367,6 +426,45 @@ export default function Home() {
           preload="none"
         />
       </div>
+    
+      {/* Modal popup - imagen desde API */}
+      <Modal show={showPopup} onHide={() => setShowPopup(false)} centered size="xl" backdrop={true}>
+        <Modal.Body className="p-0" style={{ background: "transparent" }}>
+          {popupImage ? (
+            <div style={{ position: "relative" }}>
+              <button
+                aria-label="Cerrar"
+                onClick={() => setShowPopup(false)}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "rgba(0,0,0,0.45)",
+                  border: "none",
+                  color: "#fff",
+                  padding: "6px 10px",
+                  borderRadius: "20px",
+                  zIndex: 20,
+                  cursor: "pointer",
+                  fontSize: "1.1rem",
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+              <img
+                src={popupImage.url}
+                alt={popupImage.filename}
+                className="w-100"
+                style={{ display: "block", maxHeight: "80vh", width: "100%", objectFit: "cover" }}
+              />
+            </div>
+          ) : (
+            <div className="p-3">Cargando...</div>
+          )}
+        </Modal.Body>
+      </Modal>
+
     </>
   );
 }

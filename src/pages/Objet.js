@@ -8,10 +8,8 @@ export default function Objet() {
   // 🔹 Cargar los reportes de objetos perdidos
   const fetchLostItems = async () => {
     try {
-      const res = await axios.get("http://localhost:3050/api/v1/lost_items");
-      const filtered = (res.data?.data || []).filter(
-        (item) => item.created_by === "taxista"
-      );
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/lost_items`);
+      const filtered = (res.data?.data || []);
 
       setLostItems(filtered);
     } catch (err) {
@@ -42,7 +40,7 @@ export default function Objet() {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:3050/api/v1/lost_items", form, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/lost_items`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

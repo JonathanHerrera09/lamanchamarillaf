@@ -42,10 +42,10 @@ export default function Job() {
   fd.append("description", about);
   fd.append("cv", cv);
 
-  try {
+    try {
     setSubmitting(true);
     const res = await axios.post(
-      "http://localhost:3050/api/v1/job_application",
+      `${process.env.REACT_APP_API_URL}/job_application`,
       fd,
       {
         headers: {

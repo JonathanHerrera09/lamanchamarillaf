@@ -9,7 +9,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Modal from "react-bootstrap/Modal";
 import "../styles/Admin.css";
 
-const API_BASE = "http://localhost:3050/api/v1";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:3050/api/v1";
 const TOKEN_KEY = "auth_token";
 const ADMIN_KEY = "admin_session";
 
@@ -71,6 +71,11 @@ export default function Admin() {
   const [lostReports, setLostReports] = useState([]); // lost_items
   const [drivers, setDrivers] = useState([]); // user filtered role === "2"
 
+  // Imagen popup (última imagen subida)
+  const [latestImage, setLatestImage] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
   // UI / navegación / búsquedas
   const [view, setView] = useState("search");
   const [qGlobal, setQGlobal] = useState("");
@@ -119,11 +124,39 @@ export default function Admin() {
   }, [session]);
   const fetchDrivers = async () => {
     try {
-      const res = await axios.get("http://localhost:3050/api/v1/driver/random/ten");
+      const res = await axios.get(`${API_BASE}/driver/random/ten`);
       setDriversAl(res.data?.data || []);
     } catch (err) {
       console.error("Error al obtener conductores:", err);
       setDriversAl([]);
+    }
+  };
+
+  const handleImageFile = (file) => {
+    setUploadFile(file);
+  };
+
+  const uploadImage = async (e) => {
+    e && e.preventDefault();
+    if (!uploadFile) {
+      Swal.fire({ icon: "warning", title: "Selecciona un archivo", text: "Adjunta una imagen antes de subir.", confirmButtonColor: "#f1c40f" });
+      return;
+    }
+    const fd = new FormData();
+    fd.append("image", uploadFile);
+    setUploading(true);
+    try {
+      const res = await axios.post(`${API_BASE}/images`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUploading(false);
+      setUploadFile(null);
+      Swal.fire({ icon: "success", title: "Subida exitosa", text: res.data?.message || "Imagen subida", confirmButtonColor: "#28a745" });
+      fetchLatestImage();
+    } catch (err) {
+      setUploading(false);
+      console.error("Error uploading image:", err);
+      Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || "No se pudo subir la imagen." });
     }
   };
   // --- FETCH FUNCTIONS ---
@@ -186,6 +219,18 @@ export default function Admin() {
     }
   };
 
+  const fetchLatestImage = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/images`);
+      if (res.data && res.data.code === 1) {
+        setLatestImage(res.data.data || null);
+      }
+    } catch (err) {
+      console.error("Error fetching latest image:", err);
+      setLatestImage(null);
+    }
+  };
+
   const fetchAll = async () => {
     // paralelizamos peticiones
     try {
@@ -201,6 +246,7 @@ export default function Admin() {
     // if (session) {
       fetchAll();
       fetchDrivers();
+      fetchLatestImage();
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -435,7 +481,7 @@ export default function Admin() {
                 >
                   {d.photo ? (
                     <img
-                      src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo.replace('http://localhost:3050', '')}`}
+                      src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo.replace(process.env.REACT_APP_API_URL_SOCKET, '')}`}
                       alt={d.name}
                       className="w-100 h-100 object-fit-cover"
                       onError={(e) => {
@@ -476,6 +522,7 @@ export default function Admin() {
                     { key: "promoted", label: "Busco conductor" },
                     { key: "lost", label: "Objetos encontrados" },
                     { key: "drivers", label: "Taxistas vinculados" },
+                    { key: "images", label: "Imagen popup" },
                   ].map((item) => (
                     <button
                       key={item.key}
@@ -768,6 +815,42 @@ export default function Admin() {
                 </div>
               )}
 
+                  {/* IMAGES - subir / ver última imagen para popup */}
+                  {view === "images" && (
+                    <div className="card shadow mb-3">
+                      <div className="card-header d-flex justify-content-between align-items-center">
+                        <span>Imagen popup (Home)</span>
+                        <div>
+                          <button className="btn btn-sm btn-outline-secondary me-2" onClick={fetchLatestImage}>Recargar</button>
+                        </div>
+                      </div>
+                      <div className="card-body">
+                        <div className="mb-3">
+                          <label className="form-label">Última imagen</label>
+                          {latestImage ? (
+                            <div>
+                              <img src={latestImage.url} alt={latestImage.filename} className="img-fluid rounded mb-2" />
+                              <div className="small text-muted">Subida: {latestImage.createdAt ? new Date(latestImage.createdAt).toLocaleString() : "-"}</div>
+                            </div>
+                          ) : (
+                            <div className="text-muted">No hay imagen registrada.</div>
+                          )}
+                        </div>
+
+                        <form onSubmit={uploadImage}>
+                          <div className="mb-3">
+                            <label className="form-label">Seleccionar imagen</label>
+                            <input type="file" accept="image/*" className="form-control" onChange={(e) => handleImageFile(e.target.files && e.target.files[0])} />
+                          </div>
+                          <div className="d-flex gap-2">
+                            <button type="submit" className="btn btn-primary" disabled={uploading}>{uploading ? "Subiendo..." : "Subir imagen"}</button>
+                            <button type="button" className="btn btn-outline-secondary" onClick={() => { setUploadFile(null); }} disabled={uploading}>Cancelar</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
               {/* DRIVERS - create, list, details (incluye calificaciones filtradas por driverId o placa) */}
               {view === "drivers" && (
                 <div className="row">
@@ -867,7 +950,7 @@ export default function Admin() {
                               >
                                 <img
                                   src={`${process.env.REACT_APP_API_URL_SOCKET}${
-                                    d.photo ? d.photo.replace("http://localhost:3050", "") : ""
+                                    d.photo ? d.photo.replace(process.env.REACT_APP_API_URL_SOCKET, "") : ""
                                   }`}
                                   alt={d.name}
                                   className="rounded-circle me-3"
@@ -902,7 +985,7 @@ export default function Admin() {
                             <img
                               src={`${process.env.REACT_APP_API_URL_SOCKET}${
                                 selectedDriver.photo
-                                  ? selectedDriver.photo.replace("http://localhost:3050", "")
+                                  ? selectedDriver.photo.replace(process.env.REACT_APP_API_URL_SOCKET, "")
                                   : ""
                               }`}
                               alt={selectedDriver.name}

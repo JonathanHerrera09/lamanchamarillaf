@@ -55,7 +55,7 @@ export default function Calif() {
   // 🔹 Cargar conductores destacados
   useEffect(() => {
     axios
-      .get("http://localhost:3050/api/v1/driver/random/ten")
+      .get(`${process.env.REACT_APP_API_URL}/driver/random/ten`)
       .then((res) => {
         if (res.data.code === 1 && Array.isArray(res.data.data)) {
           // console.log("Drivers cargados:", res.data.data);
@@ -74,7 +74,7 @@ export default function Calif() {
   if (!p) return;
 
   try {
-    const res = await axios.get(`http://localhost:3050/api/v1/driver/taxiplate/${p}`);
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/driver/taxiplate/${p}`);
     if (res.data.code === 1 && res.data.data && res.data.data.length > 0) {
       setFound(res.data.data[0]); // 👈 solo guardamos el primer objeto
       setSelectedId(null);
@@ -117,7 +117,7 @@ export default function Calif() {
   };
 
   try {
-    const res = await axios.post("http://localhost:3050/api/v1/rate_driver", payload);
+    const res = await axios.post(`${process.env.REACT_APP_API_URL}/rate_driver`, payload);
 
     if (res.data.code === 1) {
       alert(
@@ -168,7 +168,7 @@ export default function Calif() {
                 <div className="rounded-circle mx-auto overflow-hidden" style={{ width: "70px", height: "70px" }}>
                   {d.photo ? (
                     <img 
-                      src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo.replace('http://localhost:3050', '')}`} 
+                      src={`${process.env.REACT_APP_API_URL_SOCKET}${d.photo.replace(process.env.REACT_APP_API_URL_SOCKET, '')}`} 
                       alt={d.name}
                       className="w-100 h-100 object-fit-cover"
                       onError={(e) => {
@@ -239,7 +239,7 @@ export default function Calif() {
                         >
                           {found.photo ? (
                             <img 
-                              src={`${process.env.REACT_APP_API_URL_SOCKET}${found.photo.replace('http://localhost:3050', '')}`} 
+                              src={`${process.env.REACT_APP_API_URL_SOCKET}${found.photo.replace(process.env.REACT_APP_API_URL_SOCKET, '')}`} 
                               alt={found.name}
                               className="w-100 h-100 object-fit-cover"
                               onError={(e) => {

@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 
 const SESSION_KEY = "driver_session_v1";
 const TOKEN_KEY = "driver_token_v1";
-const API_BASE = "http://localhost:3050/api/v1";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:3050/api/v1";
 
 export default function Drivep() {
   const [session, setSession] = useState(null);
@@ -269,8 +269,8 @@ export default function Drivep() {
 
     try {
       const res = await axios.put(
-        `http://localhost:3050/api/v1/driver/${session.id}`, 
-        fd, 
+        `${API_BASE}/driver/${session.id}`,
+        fd,
         {
           headers: {
             Authorization: `Bearer ${session.token}`,
@@ -378,7 +378,7 @@ export default function Drivep() {
   };
   const removeRelative = async (id) => {
     try {
-      await axios.delete(`http://localhost:3050/api/v1/driver_family/${id}`, {
+      await axios.delete(`${API_BASE}/driver_family/${id}`, {
         headers: {
           Authorization: `Bearer ${session.token}`,
         },
@@ -405,7 +405,7 @@ export default function Drivep() {
 
     try {
       await axios.post(
-        "http://localhost:3050/api/v1/job_board",
+        `${API_BASE}/job_board`,
         {
           owner,
           description,
@@ -441,7 +441,7 @@ export default function Drivep() {
 
 const fetchOffers = async (session) => {
   try {
-    const { data } = await axios.get("http://localhost:3050/api/v1/job_board/all", {
+    const { data } = await axios.get(`${API_BASE}/job_board/all`, {
       headers: {
         authorization: `${process.env.REACT_APP_TOKEN_PUBLIC}`,
       },
@@ -458,7 +458,7 @@ const fetchOffers = async (session) => {
 const updateStatus = async (id, status) => {
   try {
     await axios.patch(
-      `http://localhost:3050/api/v1/job_board/${id}/status`,
+      `${API_BASE}/job_board/${id}/status`,
       { status },
       {
         headers: {
@@ -474,7 +474,7 @@ const updateStatus = async (id, status) => {
 
 const deleteOffer = async (id) => {
   try {
-    await axios.delete(`http://localhost:3050/api/v1/job_board/${id}`, {
+    await axios.delete(`${API_BASE}/job_board/${id}`, {
       headers: {
         Authorization: `Bearer ${session.token}`,
       },
@@ -593,7 +593,7 @@ const deleteOffer = async (id) => {
               <p className="text-muted small">Perfil del conductor</p>
               <div className="d-flex align-items-center mb-3">
                 <img
-                  src={"http://localhost:3050/" + (session.photo || "uploads/default.png")}
+                  src={`${process.env.REACT_APP_API_URL_SOCKET}/${session.photo || "uploads/default.png"}`}
                   alt="Foto del conductor"
                   className="rounded-circle me-3 border border-warning shadow"
                   style={{ width: "64px", height: "64px", objectFit: "cover" }}
