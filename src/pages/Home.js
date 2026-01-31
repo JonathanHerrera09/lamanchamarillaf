@@ -328,13 +328,13 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching rates:", error);
       setRates(FALLBACK_TESTIMONIOS);
-      Swal.fire({
-        icon: 'warning',
-        title: 'Testimonios temporales',
-        text: 'Mostrando testimonios de ejemplo mientras se restablece la conexión.',
-        confirmButtonColor: '#f0ad4e',
-        timer: 3000
-      });
+      // Swal.fire({
+      //   icon: 'warning',
+      //   title: 'Testimonios temporales',
+      //   text: 'Mostrando testimonios de ejemplo mientras se restablece la conexión.',
+      //   confirmButtonColor: '#f0ad4e',
+      //   timer: 3000
+      // });
     } finally {
       setLoading(prev => ({ ...prev, rates: false }));
     }
