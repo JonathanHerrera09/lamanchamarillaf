@@ -259,7 +259,7 @@ export default function Admin() {
     const password = String(fd.get("password") || "").trim();
 
     try {
-      const res = await axios.post(`${API_BASE}/user/login`, { email, password });
+      const res = await axios.post(`${API_BASE}/api/v1/user/login`, { email, password });
 
       const user = res.data?.data?.user;
       const token = res.data?.data?.token;

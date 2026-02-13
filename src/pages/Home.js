@@ -1,5 +1,6 @@
 // Home.js - Versión optimizada
 import React, { useRef, useState, useEffect, useCallback, useMemo, memo } from "react";
+import { Link } from "react-router-dom";
 import "../styles/Home.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "swiper/css";
@@ -124,7 +125,7 @@ const FALLBACK_TESTIMONIOS = [
 
 // Componentes memoizados
 const ServiceCard = memo(({ img, title, text, link }) => (
-  <a href={link} className="text-decoration-none text-dark" style={{ transition: "transform 0.3s" }}>
+  <Link to={link} className="text-decoration-none text-dark" style={{ transition: "transform 0.3s" }}>
     <div className="card servicio-card h-100 shadow-sm hover-shadow">
       <img src={img} className="card-img-top" alt={title} loading="lazy" />
       <div className="card-body">
@@ -132,7 +133,7 @@ const ServiceCard = memo(({ img, title, text, link }) => (
         <p className="card-text">{text}</p>
       </div>
     </div>
-  </a>
+  </Link>
 ));
 
 ServiceCard.displayName = "ServiceCard";
@@ -391,7 +392,7 @@ export default function Home() {
         <div className="hero-overlay d-flex flex-column justify-content-center align-items-center text-center">
           <h1>Bienvenido a La Mancha Amarilla</h1>
           <p>Transformando el transporte individual con innovación, seguridad y compromiso social.</p>
-          <a href="/drivep" className="btn-hero mt-3">Registrarse</a>
+          <Link to="/drivep" className="btn-hero mt-3">Registrarse</Link>
         </div>
       </section>
 
@@ -495,7 +496,7 @@ export default function Home() {
               <p>Si eres taxista, regístrate en nuestro parche en lamanchaamarilla.com y sé parte del cambio.</p>
               <p>Nuestro programa es transmitido desde Cali de lunes a viernes de 6 a 8 pm.</p>
               <p>Invitamos a gremios de otras ciudades para transmitir en la emisora, contáctanos para más detalles.</p>
-              <a href="/drivep" className="btn btn-warning fw-bold">Registrarse</a>
+              <Link to="/drivep" className="btn btn-warning fw-bold">Registrarse</Link>
             </div>
             <div className="col-lg-6 text-center">
               <img src="img/unete.png" alt="Taxis La Mancha Amarilla" className="img-fluid rounded shadow" loading="lazy" />
