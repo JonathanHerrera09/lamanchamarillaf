@@ -6,7 +6,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 // Configuración de Axios para evitar CORS
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:3050/api/v1";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:3050";
 axios.defaults.baseURL = API_BASE;
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
@@ -435,6 +435,7 @@ export default function Drivep() {
       const driver = {
         id: user.id,
         email: user.email,
+        driverId: user.driverId,
         name: user.name || user.username || "Conductor",
         token
       };
@@ -511,7 +512,7 @@ export default function Drivep() {
 
     const formData = new FormData(e.currentTarget);
     const relative = {
-      driverId: session.id,
+      driverId: session.driverId,
       name: formData.get("firstName").trim(),
       lastName: formData.get("lastName").trim(),
       dni: formData.get("dni").trim(),
@@ -529,7 +530,7 @@ export default function Drivep() {
 
     try {
       await apiCall("POST", "/driver_family", relative);
-      fetchRelatives(session.id, session.token);
+      fetchRelatives(session.driverId, session.token);
       e.target.reset();
       Swal.fire({ icon: "success", title: "Familiar agregado" });
     } catch (error) {
@@ -543,7 +544,7 @@ export default function Drivep() {
 
     try {
       await apiCall("DELETE", `/driver_family/${id}`);
-      fetchRelatives(session.id, session.token);
+      fetchRelatives(session.driverId, session.token);
     } catch (error) {
       Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar el familiar" });
     }
@@ -727,8 +728,8 @@ export default function Drivep() {
           fetchLostItems(),
           fetchJobApplications(),
           fetchDriverRatings(),
-          fetchRelatives(session.id, session.token),
-          fetchDriverData(session.id, session.token)
+          fetchRelatives(session.driverId, session.token),
+          fetchDriverData(session.driverId, session.token)
         ]);
       } catch (err) {
         if (!cancelled) console.error("Error cargando datos de sesión:", err);
