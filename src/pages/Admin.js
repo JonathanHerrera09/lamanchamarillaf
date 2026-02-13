@@ -124,7 +124,7 @@ export default function Admin() {
   }, [session]);
   const fetchDrivers = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/driver/random/ten`);
+      const res = await axios.get(`${API_BASE}/api/v1/driver/random/ten`);
       setDriversAl(res.data?.data || []);
     } catch (err) {
       console.error("Error al obtener conductores:", err);
@@ -146,7 +146,7 @@ export default function Admin() {
     fd.append("image", uploadFile);
     setUploading(true);
     try {
-      const res = await axios.post(`${API_BASE}/images`, fd, {
+      const res = await axios.post(`${API_BASE}/api/v1/images`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setUploading(false);
@@ -162,7 +162,7 @@ export default function Admin() {
   // --- FETCH FUNCTIONS ---
   const fetchRatings = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/rate_driver`);
+      const res = await axios.get(`${API_BASE}/api/v1/rate_driver`);
       setRatings(res.data?.data || []);
     } catch (err) {
       console.error("Error fetching ratings:", err);
@@ -173,7 +173,7 @@ export default function Admin() {
 
   const fetchJobApplications = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/job_application`);
+      const res = await axios.get(`${API_BASE}/api/v1/job_application`);
       setAppsRequested(res.data?.data || []);
     } catch (err) {
       console.error("Error fetching job applications:", err);
@@ -184,7 +184,7 @@ export default function Admin() {
 
   const fetchJobBoard = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/job_board/all`, {
+      const res = await axios.get(`${API_BASE}/api/v1/job_board/all`, {
         headers: {
           authorization: `${process.env.REACT_APP_TOKEN_PUBLIC}`,
         },
@@ -199,7 +199,7 @@ export default function Admin() {
 
   const fetchLostItems = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/lost_items`);
+      const res = await axios.get(`${API_BASE}/api/v1/lost_items`);
       setLostReports(res.data?.data || []);
     } catch (err) {
       console.error("Error fetching lost items:", err);
@@ -210,7 +210,7 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/driver`);
+      const res = await axios.get(`${API_BASE}/api/v1/driver`);
       const all = res.data?.data || [];
       setDrivers(all);
     } catch (err) {
@@ -221,7 +221,7 @@ export default function Admin() {
 
   const fetchLatestImage = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/images`);
+      const res = await axios.get(`${API_BASE}/api/v1/images`);
       if (res.data && res.data.code === 1) {
         setLatestImage(res.data.data || null);
       }
@@ -291,7 +291,7 @@ export default function Admin() {
   // --- DELETE FUNCTIONS ---
   const deleteRating = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/rate_driver/${id}`);
+      await axios.delete(`${API_BASE}/api/v1/rate_driver/${id}`);
       setRatings((prev) => prev.filter((r) => r.id !== id));
       Swal.fire({ icon: "success", title: "Eliminado", text: "Calificación eliminada", confirmButtonColor: "#28a745" });
     } catch (err) {
@@ -302,7 +302,7 @@ export default function Admin() {
 
   const deleteJobApplication = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/job_application/${id}`);
+      await axios.delete(`${API_BASE}/api/v1/job_application/${id}`);
       setAppsRequested((prev) => prev.filter((a) => a.id !== id));
       Swal.fire({ icon: "success", title: "Eliminado", text: "Postulación eliminada", confirmButtonColor: "#28a745" });
     } catch (err) {
@@ -313,7 +313,7 @@ export default function Admin() {
 
   const deleteJobPromotion = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/job_board/${id}`);
+      await axios.delete(`${API_BASE}/api/v1/job_board/${id}`);
       setJobsPromoted((prev) => prev.filter((j) => j.id !== id));
       Swal.fire({ icon: "success", title: "Eliminado", text: "Vacante eliminada", confirmButtonColor: "#28a745" });
     } catch (err) {
@@ -324,7 +324,7 @@ export default function Admin() {
 
   const deleteLostItem = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/lost_items/${id}`);
+      await axios.delete(`${API_BASE}/api/v1/lost_items/${id}`);
       setLostReports((prev) => prev.filter((r) => r.id !== id));
       Swal.fire({ icon: "success", title: "Eliminado", text: "Reporte de objeto perdido eliminado", confirmButtonColor: "#28a745" });
     } catch (err) {
@@ -335,7 +335,7 @@ export default function Admin() {
 
   const deleteDriver = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/driver/${id}`);
+      await axios.delete(`${API_BASE}/api/v1/driver/${id}`);
       setDrivers((prev) => prev.filter((d) => d.id !== id));
       if (selectedDriverId === id) setSelectedDriverId(null);
       Swal.fire({ icon: "success", title: "Eliminado", text: "Conductor eliminado", confirmButtonColor: "#28a745" });
@@ -372,7 +372,7 @@ export default function Admin() {
     }
 
     try {
-      const res = await axios.post(`${API_BASE}/driver`, fd, {
+      const res = await axios.post(`${API_BASE}/api/v1/driver`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       Swal.fire({

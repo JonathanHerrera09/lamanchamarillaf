@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom"; // 👈 agrega useNavigate
+import React, { useState, useCallback } from "react";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Calif from "./pages/Calif";
@@ -8,99 +8,92 @@ import Job from "./pages/Job";
 import Drivep from "./pages/Drivep";
 import "./styles/index.css";
 
+const SOCIAL_LINKS = [
+  { href: "https://www.facebook.com/lamanchaamarilla/?locale=es_LA", icon: "facebook-f", className: "facebook" },
+  { href: "https://x.com/", icon: "x-twitter", className: "x" },
+  { href: "https://www.instagram.com/lamanchaamarilla/", icon: "instagram", className: "instagram" },
+  { href: "https://www.youtube.com/@lamanchaamarilla", icon: "youtube", className: "youtube" },
+  { href: "https://www.tiktok.com/@johnnyrangellma", icon: "tiktok", className: "tiktok" }
+];
+
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 👇 Función para ir a la home y luego hacer scroll a una sección
-  const handleNavigateToSection = (sectionId) => {
-    setMenuOpen(false);
-    navigate("/"); // primero navega al inicio
-    // Espera un momento a que cargue la Home antes de hacer scroll
-    setTimeout(() => {
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  const handleNavigateToSection = useCallback((sectionId) => {
+    closeMenu();
+    navigate("/");
+
+    requestAnimationFrame(() => {
       const section = document.querySelector(sectionId);
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 500); // ajusta el tiempo si tu Home tarda más en renderizar
-  };
+      section?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, [navigate, closeMenu]);
 
   return (
     <>
       <header>
-        {/* 🔸 Top Bar */}
+        {/* Top Bar */}
         <div className="top-bar">
           <div className="apps">
             <a href="#">Android App</a> | <a href="#">iOS App</a>
           </div>
+
           <div className="social-icons">
-            <a href="https://www.facebook.com/lamanchaamarilla/?locale=es_LA">
-              <i className="fab fa-facebook-f"></i>
-            </a>
-            <a href="https://x.com/">
-              <i className="fab fa-x-twitter"></i>
-            </a>
-            <a href="https://www.instagram.com/lamanchaamarilla/">
-              <i className="fab fa-instagram"></i>
-            </a>
-            <a href="https://www.youtube.com/@lamanchaamarilla">
-              <i className="fab fa-youtube"></i>
-            </a>
-            <a href="https://www.tiktok.com/@johnnyrangellma">
-              <i className="fab fa-tiktok"></i>
-            </a>
+            {SOCIAL_LINKS.map(({ href, icon }, i) => (
+              <a key={i} href={href} target="_blank" rel="noopener noreferrer">
+                <i className={`fab fa-${icon}`}></i>
+              </a>
+            ))}
           </div>
         </div>
 
-        {/* 🔸 Navbar principal */}
+        {/* Navbar */}
         <nav className="navbar">
           <div className="logo">
             <img src="img/MANCHAAMARILLA.COM.png" alt="Logo" />
           </div>
 
-          <ul className={`nav-links ${menuOpen ? "active" : ""}`} id="nav-links">
+          <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
             <li>
-              <Link to="/" className="menu-link btn btn-link p-0 border-0 text-start" onClick={() => setMenuOpen(false)}>Inicio</Link>
+              <Link to="/" className="menu-link btn btn-link p-0 border-0 text-start" onClick={closeMenu}>
+                Inicio
+              </Link>
             </li>
             <li>
-              <button
-                className="menu-link btn btn-link p-0 border-0 text-start"
-                onClick={() => handleNavigateToSection("#servicios")}
-              >
+              <button className="menu-link btn btn-link p-0 border-0 text-start"
+                onClick={() => handleNavigateToSection("#servicios")}>
                 Servicio
               </button>
             </li>
             <li>
-              <button
-                className="menu-link btn btn-link p-0 border-0 text-start"
-                onClick={() => handleNavigateToSection("#Sobre-Nosotros")}
-              >
+              <button className="menu-link btn btn-link p-0 border-0 text-start"
+                onClick={() => handleNavigateToSection("#Sobre-Nosotros")}>
                 Sobre Nosotros
               </button>
             </li>
             <li>
-              <button
-                className="menu-link btn btn-link p-0 border-0 text-start"
-                onClick={() => handleNavigateToSection("#contacto")}
-              >
+              <button className="menu-link btn btn-link p-0 border-0 text-start"
+                onClick={() => handleNavigateToSection("#contacto")}>
                 Únete
               </button>
             </li>
             <li>
-              <Link to="/admin" className="menu-link btn btn-link p-0 border-0 text-start" onClick={() => setMenuOpen(false)}>
+              <Link to="/admin" className="menu-link btn btn-link p-0 border-0 text-start" onClick={closeMenu}>
                 Iniciar Sesión
               </Link>
             </li>
           </ul>
 
-          {/* Botón hamburguesa */}
-          <div className="menu-toggle" id="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          <div className="menu-toggle" onClick={() => setMenuOpen(v => !v)}>
             <i className="fas fa-bars"></i>
           </div>
         </nav>
       </header>
 
-      {/* 🔸 Contenido principal */}
+      {/* Main */}
       <main className="containerx">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -112,70 +105,36 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* 🔸 Footer */}
+      {/* Footer */}
       <footer className="footer">
         <div className="container">
           <div className="row">
-            {/* Logo */}
             <div className="col-lg-3 col-md-6 footer-logo text-center mb-4 mb-lg-0">
-              <img
-                src="img/taxi.webp"
-                alt="Logo La Mancha Amarilla"
-                className="footer-logo-img"
-              />
+              <img src="img/taxi.webp" alt="Logo La Mancha Amarilla" className="footer-logo-img" />
             </div>
 
-            {/* Descripción */}
             <div className="col-lg-3 col-md-6 footer-about mb-4 mb-lg-0">
               <p>
-                La Mancha Amarilla es un proyecto pensado para mejorar el
-                servicio de transporte en taxis, fomentando una comunidad
-                cívico-social que apoya a conductores y pasajeros con un servicio
-                más humano y confiable.
+                La Mancha Amarilla es un proyecto pensado para mejorar el servicio de transporte en taxis,
+                fomentando una comunidad cívico-social más humana y confiable.
               </p>
             </div>
 
-            {/* Contacto */}
             <div className="col-lg-3 col-md-6 footer-contact mb-4 mb-lg-0">
               <h5>Información de Contacto</h5>
               <ul>
-                <li>
-                  <strong>Email:</strong> LamanchaamarillaVirtual@gmail.com
-                </li>
+                <li><strong>Email:</strong> LamanchaamarillaVirtual@gmail.com</li>
               </ul>
             </div>
 
-            {/* Redes Sociales */}
             <div className="col-lg-3 col-md-6 footer-social">
               <h5>Síguenos</h5>
               <div className="social-grid">
-                <a
-                  href="https://www.facebook.com/lamanchaamarilla/?locale=es_LA"
-                  className="facebook"
-                >
-                  <i className="fab fa-facebook-f"></i>
-                </a>
-                <a href="https://x.com/" className="x">
-                  <i className="fab fa-x-twitter"></i>
-                </a>
-                <a
-                  href="https://www.instagram.com/lamanchaamarilla/"
-                  className="instagram"
-                >
-                  <i className="fab fa-instagram"></i>
-                </a>
-                <a
-                  href="https://www.youtube.com/@lamanchaamarilla"
-                  className="youtube"
-                >
-                  <i className="fab fa-youtube"></i>
-                </a>
-                <a
-                  href="https://www.tiktok.com/@johnnyrangellma"
-                  className="tiktok"
-                >
-                  <i className="fab fa-tiktok"></i>
-                </a>
+                {SOCIAL_LINKS.map(({ href, icon, className }, i) => (
+                  <a key={i} href={href} className={className} target="_blank" rel="noopener noreferrer">
+                    <i className={`fab fa-${icon}`}></i>
+                  </a>
+                ))}
               </div>
             </div>
           </div>

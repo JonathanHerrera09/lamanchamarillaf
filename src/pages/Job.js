@@ -1,84 +1,121 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
+
+// Configuración centralizada de axios
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `${process.env.REACT_APP_TOKEN_PUBLIC}`,
+  },
+});
+
+// Configuración para SweetAlert
+const showAlert = (title, text, icon = "success") => {
+  Swal.fire({
+    title,
+    text,
+    icon,
+    confirmButtonText: "OK",
+    confirmButtonColor: "#3085d6",
+  });
+};
 
 export default function Job() {
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  // const [cv, setCv] = useState(null);
   const [jobApplications, setJobApplications] = useState([]);
   const formRef = useRef(null);
 
-  // 🔹 Cargar postulaciones existentes
-  const fetchJobApplications = async () => {
-  try {
-    const res = await axios.get(
-      `${process.env.REACT_APP_API_URL}/job_board/all`,
-      { 
-       headers: {
-        authorization: `${process.env.REACT_APP_TOKEN_PUBLIC}`,
-      },
-      }
-    );
-    
-    // Verificar la estructura real de la respuesta de tu API
-    const data = res.data?.data || res.data || [];
-    const filteredData = data.filter(item => item.status === "1");
-    setJobApplications(filteredData);
-    
-  } catch (err) {
-    console.error("Error al obtener postulaciones:", err);
-    setJobApplications([]);
-  }
-};
+  // 🔹 Cargar postulaciones existentes (memoizado)
+  const fetchJobApplications = useCallback(async () => {
+    try {
+      const res = await api.get("/job_board/all");
+      const data = res.data?.data || res.data || [];
+      setJobApplications(data.filter((item) => item.status === "1"));
+    } catch (err) {
+      console.error("Error al obtener postulaciones:", err);
+      setJobApplications([]);
+      showAlert("Error", "No se pudieron cargar las postulaciones", "error");
+    }
+  }, []);
 
   useEffect(() => {
     fetchJobApplications();
-  }, []);
+  }, [fetchJobApplications]);
 
-  // 🔹 Envío del formulario
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  // 🔹 Envío del formulario (memoizado)
+  const onSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      
+      const formData = new FormData(form);
+      const nameDriver = formData.get("nameDriver")?.toString().trim() || "";
+      const contact = formData.get("contact")?.toString().trim() || "";
 
-    const nameDriver = e.currentTarget.nameDriver.value.trim();
-    const dni = e.currentTarget.dni.value.trim();
-    const contact = e.currentTarget.contact.value.trim();
-    const about = e.currentTarget.about.value.trim();
+      if (!nameDriver || !contact) {
+        showAlert("Campos requeridos", "Completa todos los campos obligatorios", "warning");
+        return;
+      }
 
-    if (!nameDriver || !contact ) {
-      alert("Completa todos los campos obligatorios.");
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append("nameDriver", nameDriver);
-    fd.append("dni", dni);
-    fd.append("contact", contact);
-    fd.append("description", about);
-    // fd.append("cv", cv);
-
-    try {
-      setSubmitting(true);
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_URL}/job_application`,
-        fd,
-        {
+      try {
+        setSubmitting(true);
+        await api.post("/job_application", formData, {
           headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+        });
 
-      alert(`¡Gracias ${nameDriver}! Hemos recibido tu postulación.`);
-      console.log("Respuesta del servidor:", res.data);
+        showAlert("¡Éxito!", `Gracias ${nameDriver}. Hemos recibido tu postulación.`);
+        form.reset();
+        await fetchJobApplications();
+      } catch (error) {
+        console.error("Error al enviar postulación:", error);
+        showAlert("Error", "Hubo un error al enviar tu postulación. Intenta nuevamente.", "error");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [fetchJobApplications]
+  );
 
-      // setCv(null);
-      formRef.current?.reset();
-      fetchJobApplications(); // 🔄 Recargar lista
-    } catch (error) {
-      console.error("Error al enviar postulación:", error);
-      alert("Hubo un error al enviar tu postulación. Intenta nuevamente.");
-    } finally {
-      setSubmitting(false);
+  // 🔹 Renderizado optimizado de postulaciones (memoizado)
+  const renderJobApplications = useMemo(() => {
+    if (jobApplications.length === 0) {
+      return <p className="text-muted">No hay postulaciones aún.</p>;
     }
-  };
+
+    return (
+      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {jobApplications.map((app) => (
+          <div key={`${app.id || app.dni}-${app.nameDriver}`} className="col">
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h6 className="card-title">
+                  👤 {app.nameDriver} {app.dni && `— ${app.dni}`}
+                </h6>
+                <p className="card-text">
+                  <strong>Teléfono:</strong> {app.contact}
+                </p>
+                <p className="card-text">
+                  <strong>Sobre ti:</strong> {app.description || "Sin descripción"}
+                </p>
+                {app.cv_url && (
+                  <a
+                    href={app.cv_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-sm btn-outline-secondary mt-2"
+                  >
+                    Ver CV
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }, [jobApplications]);
 
   return (
     <div className="container py-5">
@@ -92,7 +129,7 @@ export default function Job() {
 
       {/* 🔸 ACORDEÓN PRINCIPAL */}
       <div className="accordion" id="jobAccordion">
-        {/* PANEL 1: LISTA DE POSTULACIONES (EN CARDS) */}
+        {/* PANEL 1: LISTA DE POSTULACIONES */}
         <div className="accordion-item">
           <h2 className="accordion-header" id="headingApplications">
             <button
@@ -113,39 +150,7 @@ export default function Job() {
             data-bs-parent="#jobAccordion"
           >
             <div className="accordion-body">
-              {jobApplications.length === 0 ? (
-                <p className="text-muted">No hay postulaciones aún.</p>
-              ) : (
-                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                  {jobApplications.map((app, i) => (
-                    <div key={i} className="col">
-                      <div className="card h-100 shadow-sm">
-                        <div className="card-body">
-                          <h6 className="card-title">
-                            👤 {app.nameDriver} {app.dni && `— ${app.dni}`}
-                          </h6>
-                          <p className="card-text">
-                            <strong>Teléfono:</strong> {app.contact}
-                          </p>
-                          <p className="card-text">
-                            <strong>Sobre ti:</strong> {app.description || "Sin descripción"}
-                          </p>
-                          {app.cv_url && (
-                            <a
-                              href={app.cv_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn btn-sm btn-outline-secondary mt-2"
-                            >
-                              Ver CV
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {renderJobApplications}
             </div>
           </div>
         </div>
@@ -176,7 +181,7 @@ export default function Job() {
                   <div className="row g-3">
                     <div className="col-md-6">
                       <label className="form-label" htmlFor="nameDriver">
-                        Nombre y apellido
+                        Nombre y apellido *
                       </label>
                       <input
                         id="nameDriver"
@@ -184,6 +189,7 @@ export default function Job() {
                         type="text"
                         className="form-control"
                         placeholder="Tu nombre completo"
+                        required
                       />
                     </div>
                     <div className="col-md-6">
@@ -203,14 +209,15 @@ export default function Job() {
                   <div className="row g-3 mt-2">
                     <div className="col-md-6">
                       <label className="form-label" htmlFor="contact">
-                        Teléfono
+                        Teléfono *
                       </label>
                       <input
                         id="contact"
                         name="contact"
-                        type="text"
+                        type="tel"
                         className="form-control"
                         placeholder="Ej.: +57 300 000 0000"
+                        required
                       />
                     </div>
                   </div>
