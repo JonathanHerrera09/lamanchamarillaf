@@ -46,16 +46,16 @@ const SERVICES_DATA = [
 
 const EMPRESAS_DATA = [
   [
-    { img: "img/valcali.webp", name: "Valcali" },
-    { img: "img/toro-autos.webp", name: "Toro Autos" },
-    { img: "img/taxis-y-autos-cali.webp", name: "Taxis y Autos Cali" },
-    { img: "img/Logo-Tx-plus.webp", name: "TX Plus" }
+    { img: "img/valcali.webp", name: "Valcali", url:"https://sindiunion.com/"},
+    { img: "img/toro-autos.webp", name: "Toro Autos", url:"https://toroautos.com/" },
+    { img: "img/taxis-y-autos-cali.webp", name: "Taxis y Autos Cali", url:"https://cali.taxexpress.com.co/" },
+    { img: "img/Logo-Tx-plus.webp", name: "TX Plus", url:"https://app.txplus.com.co/  " }
   ],
   [
-    { img: "img/asotaba.webp", name: "Asotaba" },
-    { img: "img/servitaxis.webp", name: "ServiTaxis" },
-    { img: "img/radio-taxi-california.webp", name: "Radio Taxi California" },
-    { img: "img/logo-taxis-libres.webp", name: "Taxi Libres" }
+    { img: "img/asotaba.webp", name: "Asotaba", url:"https://asotaba.com/" },
+    { img: "img/servitaxis.webp", name: "ServiTaxis", url:"https://servitaxis.co/" },
+    { img: "img/radio-taxi-california.webp", name: "Radio Taxi California", url:"" },
+    { img: "img/logo-taxis-libres.webp", name: "Taxi Libres", url:"https://www.taxislibres.com.co/taxis-cali" }
   ]
 ];
 
@@ -137,12 +137,25 @@ const ServiceCard = memo(({ img, title, text, link }) => (
 
 ServiceCard.displayName = "ServiceCard";
 
-const EmpresaCard = memo(({ img, name }) => (
-  <div className="empresa-card">
-    <img src={img} alt={name} loading="lazy" />
-    <p>{name}</p>
-  </div>
-));
+const EmpresaCard = memo(({ img, name, url }) => {
+  const safeUrl = url && String(url).trim() ? String(url).trim() : null;
+  const content = (
+    <div className="empresa-card">
+      <img src={img} alt={name} loading="lazy" />
+      <p>{name}</p>
+    </div>
+  );
+
+  if (safeUrl) {
+    return (
+      <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="empresa-link">
+        {content}
+      </a>
+    );
+  }
+
+  return content;
+});
 
 EmpresaCard.displayName = "EmpresaCard";
 

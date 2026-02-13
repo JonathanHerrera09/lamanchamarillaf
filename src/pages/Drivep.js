@@ -245,8 +245,9 @@ const ProfileSection = memo(({ session, onUpdateProfile, onLogout }) => {
           <div>
             <h6 className="mb-0">{session.name}</h6>
             <small className="text-muted">Placa {session.plate}</small>
-            <div className="mt-1">
+            <div className="d-flex align-items-center mt-1">
               <StarRating rating={session.averageRate || 0} />
+              <small className="text-warning ms-2 fw-bold fs-5">{(session.ratingsCount ?? 0)} calificaciones</small>
             </div>
           </div>
         </div>
@@ -439,12 +440,8 @@ export default function Drivep() {
       };
 
       setSession(driver);
-      
-      // Cargar datos del conductor
-      await Promise.all([
-        fetchRelatives(user.id, token),
-        fetchDriverData(user.id, token)
-      ]);
+      // No llamar explícitamente a las funciones de carga aquí: el efecto
+      // que observa `session.id`/`session.token` se encargará de cargar los datos.
 
       Swal.fire({ icon: "success", title: "Login exitoso", text: `Bienvenido ${driver.name}` });
     } catch (error) {
@@ -698,31 +695,52 @@ export default function Drivep() {
     }
   }, [apiCall]);
 
-  // Obtener calificaciones
+  // Obtener calificaciones y contar cantidad
   const fetchDriverRatings = useCallback(async () => {
     if (!session) return;
 
     try {
       const response = await apiCall("GET", `/rate_driver/driver/${session.id}`);
-      setRatings(response.data || []);
+      // `apiCall` puede devolver directamente el array o un objeto { code, data }
+      const dataArray = Array.isArray(response)
+        ? response
+        : (Array.isArray(response?.data) ? response.data : []);
+
+      setRatings(dataArray);
+      setSession(prev => prev ? { ...prev, ratingsCount: dataArray.length } : prev);
     } catch (error) {
       console.error("Error obteniendo calificaciones:", error);
+      setSession(prev => prev ? { ...prev, ratingsCount: prev.ratingsCount || 0 } : prev);
     }
-  }, [apiCall, session]);
+  }, [apiCall, session, setSession]);
 
-  // Efecto para cargar datos cuando hay sesión
+  // Efecto para cargar datos cuando cambian id/token de sesión
   useEffect(() => {
-    if (session?.id && session?.token) {
-      Promise.all([
-        fetchOffers(),
-        fetchLostItems(),
-        fetchJobApplications(),
-        fetchDriverRatings(),
-        fetchRelatives(session.id, session.token),
-        fetchDriverData(session.id, session.token)
-      ]);
-    }
-  }, [session, fetchOffers, fetchLostItems, fetchJobApplications, fetchDriverRatings, fetchRelatives, fetchDriverData]);
+    if (!session?.id || !session?.token) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        await Promise.all([
+          fetchOffers(),
+          fetchLostItems(),
+          fetchJobApplications(),
+          fetchDriverRatings(),
+          fetchRelatives(session.id, session.token),
+          fetchDriverData(session.id, session.token)
+        ]);
+      } catch (err) {
+        if (!cancelled) console.error("Error cargando datos de sesión:", err);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.id, session?.token]);
 
   // Render login/register
   if (!session) {
