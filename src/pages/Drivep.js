@@ -482,7 +482,7 @@ export default function Drivep() {
     const formData = new FormData(e.currentTarget);
     
     try {
-      const response = await apiCall("PUT", `/driver/${session.id}`, formData);
+      const response = await apiCall("PUT", `/driver/${session.driverId}`, formData);
       
       if (response?.code === 1) {
         const updated = response.data;
@@ -701,7 +701,7 @@ export default function Drivep() {
     if (!session) return;
 
     try {
-      const response = await apiCall("GET", `/rate_driver/driver/${session.id}`);
+      const response = await apiCall("GET", `/rate_driver/driver/${session.driverId}`);
       // `apiCall` puede devolver directamente el array o un objeto { code, data }
       const dataArray = Array.isArray(response)
         ? response
